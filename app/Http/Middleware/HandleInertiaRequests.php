@@ -1,0 +1,80 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use App\Domain\Billing\Services\SubscriptionService;
+use App\Domain\Tenant\Models\Tenant;
+use Illuminate\Http\Request;
+use Inertia\Middleware;
+
+class HandleInertiaRequests extends Middleware
+{
+    /**
+     * @var string
+     */
+    protected $rootView = 'app';
+
+    public function version(Request $request): ?string
+    {
+        return parent::version($request);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function share(Request $request): array
+    {
+        $user = $request->user();
+        $tenant = Tenant::current();
+        $employee = $user?->employee;
+        $subscription = $tenant ? app(SubscriptionService::class)->snapshot($tenant) : null;
+
+        return [
+            ...parent::share($request),
+            'name' => $tenant?->name ?: config('app.name'),
+            'auth' => [
+                'user' => $user,
+            ],
+            'tenant' => $tenant ? [
+                'id' => $tenant->id,
+                'name' => $tenant->name,
+                'slug' => $tenant->slug,
+                'status' => $tenant->status->value,
+                'timezone' => $tenant->timezone,
+            ] : null,
+            'employee' => $employee ? [
+                'id' => $employee->id,
+                'full_name' => $employee->full_name,
+                'employee_code' => $employee->employee_code,
+            ] : null,
+            'subscription' => $subscription,
+            'can' => [
+                'manageEmployees' => $user?->can('employee.view') ?? false,
+                'createEmployees' => $user?->can('employee.create') ?? false,
+                'manageDepartments' => $user?->can('department.manage') ?? false,
+                'manageDesignations' => $user?->can('designation.manage') ?? false,
+                'manageOffices' => $user?->can('office.manage') ?? false,
+                'manageShifts' => $user?->can('shift.manage') ?? false,
+                'viewReports' => $user?->can('attendance.export') || $user?->can('employee.view') ?? false,
+                'markAttendance' => $user?->can('attendance.create') ?? false,
+                'applyLeave' => $user?->can('leave.apply') ?? false,
+                'approveLeave' => $user?->can('leave.approve') ?? false,
+                'manageLeave' => $user?->can('leave.manage') ?? false,
+                'viewHolidays' => $user?->can('holiday.view') ?? false,
+                'manageHolidays' => $user?->can('holiday.manage') ?? false,
+                'manageSettings' => $user?->can('settings.manage') ?? false,
+                'manageRoles' => ($user?->can('role.manage') ?? false) && in_array('custom_roles', $subscription['features'] ?? [], true),
+                'viewAudit' => ($user?->can('audit.view') ?? false) && in_array('audit_log', $subscription['features'] ?? [], true),
+                'manageBilling' => $user?->can('settings.manage') ?? false,
+                'exportReports' => ($user?->can('attendance.export') ?? false) && in_array('exports', $subscription['features'] ?? [], true),
+                'advancedReports' => ($user?->can('attendance.view') ?? false) && in_array('advanced_reports', $subscription['features'] ?? [], true),
+                'apiAccess' => ($user?->can('settings.manage') ?? false) && in_array('api_access', $subscription['features'] ?? [], true),
+                'customDomain' => ($user?->can('settings.manage') ?? false) && in_array('custom_domain', $subscription['features'] ?? [], true),
+                'locationAttendance' => in_array('location_attendance', $subscription['features'] ?? [], true),
+                'platform' => $user?->is_platform_admin ?? false,
+            ],
+            'unreadNotifications' => $user?->unreadNotifications()->count() ?? 0,
+            'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+        ];
+    }
+}
