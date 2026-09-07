@@ -13,7 +13,6 @@ import {
     Inbox,
     KeyRound,
     Layers3,
-    LayoutDashboard,
     LayoutGrid,
     MapPin,
     Network,
@@ -38,199 +37,187 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import type { NavItem } from '@/types';
+import type { NavGroup, NavItem } from '@/types';
+
+function navGroup(
+    title: string,
+    items: Array<NavItem | false | undefined>,
+): NavGroup | null {
+    const visible = items.filter((item): item is NavItem => Boolean(item));
+
+    return visible.length > 0 ? { title, items: visible } : null;
+}
 
 export function AppSidebar() {
     const { can, unreadNotifications } = usePage().props;
+    const isPlatform = Boolean(can?.platform);
+    const unread = Number(unreadNotifications ?? 0);
 
-    const mainNavItems: NavItem[] = [
-        {
-            title: 'Dashboard',
-            href: dashboard(),
-            icon: LayoutGrid,
-        },
-        {
-            title: 'My Calendar',
-            href: '/attendance/calendar',
-            icon: CalendarDays,
-        },
-        {
-            title: 'Leave',
-            href: '/leave',
-            icon: Palmtree,
-        },
-        {
-            title: 'Holidays',
-            href: '/holidays',
-            icon: CalendarOff,
-        },
-        {
-            title: unreadNotifications ? `Notifications (${unreadNotifications})` : 'Notifications',
-            href: '/notifications',
-            icon: Bell,
-        },
-    ];
-
-    if (can?.manageEmployees) {
-        mainNavItems.push({
-            title: 'Employees',
-            href: '/employees',
-            icon: Users,
-        });
-    }
-
-    if (can?.approveLeave) {
-        mainNavItems.push({
-            title: 'Leave approvals',
-            href: '/leave/approvals',
-            icon: Inbox,
-        });
-    }
-
-    if (can?.manageLeave) {
-        mainNavItems.push({
-            title: 'Leave types',
-            href: '/leave/types',
-            icon: ClipboardList,
-        });
-    }
-
-    if (can?.manageDepartments) {
-        mainNavItems.push({
-            title: 'Departments',
-            href: '/departments',
-            icon: Layers3,
-        });
-    }
-
-    if (can?.manageDesignations) {
-        mainNavItems.push({
-            title: 'Designations',
-            href: '/designations',
-            icon: ClipboardList,
-        });
-    }
-
-    if (can?.manageOffices) {
-        mainNavItems.push({
-            title: 'Offices & Networks',
-            href: '/offices',
-            icon: Building2,
-        });
-    }
-
-    if (can?.manageShifts) {
-        mainNavItems.push({
-            title: 'Shifts',
-            href: '/shifts',
-            icon: Clock3,
-        });
-    }
-
-    if (can?.manageSettings) {
-        mainNavItems.push({
-            title: 'Working days',
-            href: '/working-days',
-            icon: CalendarDays,
-        });
-        mainNavItems.push({
-            title: 'Attendance mode',
-            href: '/settings/attendance',
-            icon: MapPin,
-        });
-    }
-
-    mainNavItems.push({
-        title: 'Devices',
-        href: '/devices',
-        icon: Fingerprint,
-    });
-
-    if (can?.manageRoles) {
-        mainNavItems.push({
-            title: 'Roles',
-            href: '/roles',
-            icon: Shield,
-        });
-    }
-
-    if (can?.viewAudit) {
-        mainNavItems.push({
-            title: 'Audit log',
-            href: '/audit-logs',
-            icon: ScrollText,
-        });
-    }
-
-    if (can?.customDomain) {
-        mainNavItems.push({
-            title: 'Custom domain',
-            href: '/settings/domains',
-            icon: Globe,
-        });
-    }
-
-    if (can?.apiAccess) {
-        mainNavItems.push({
-            title: 'API tokens',
-            href: '/settings/api-tokens',
-            icon: KeyRound,
-        });
-    }
-
-    if (can?.manageBilling) {
-        mainNavItems.push({
-            title: 'Billing',
-            href: '/billing',
-            icon: CreditCard,
-        });
-    }
-
-    if (can?.viewReports) {
-        mainNavItems.push({
-            title: 'Attendance Reports',
-            href: '/reports/attendance',
-            icon: Network,
-        });
-    }
-
-    if (can?.advancedReports) {
-        mainNavItems.push({
-            title: 'Advanced reports',
-            href: '/reports/advanced',
-            icon: FileSpreadsheet,
-        });
-    }
-
-    if (can?.platform) {
-        mainNavItems.push(
+    const groups = [
+        navGroup('Overview', [
             {
-                title: 'Platform',
-                href: '/platform',
-                icon: LayoutDashboard,
+                title: 'Dashboard',
+                href: isPlatform ? '/platform' : dashboard(),
+                icon: LayoutGrid,
+                match: 'exact',
             },
-            {
-                title: 'Platform Tenants',
-                href: '/platform/tenants',
-                icon: Shield,
-            },
-            {
-                title: 'Plans',
-                href: '/platform/plans',
-                icon: ClipboardList,
-            },
-            {
-                title: 'Payments',
-                href: '/platform/payments',
-                icon: Receipt,
-            },
-            {
-                title: 'Leads',
-                href: '/platform/leads',
-                icon: Inbox,
-            },
-        );
-    }
+        ]),
+        !isPlatform
+            ? navGroup('My work', [
+                  {
+                      title: 'Calendar',
+                      href: '/attendance/calendar',
+                      icon: CalendarDays,
+                  },
+                  {
+                      title: 'Leave',
+                      href: '/leave',
+                      icon: Palmtree,
+                      match: 'exact',
+                  },
+                  {
+                      title: 'Holidays',
+                      href: '/holidays',
+                      icon: CalendarOff,
+                  },
+                  {
+                      title: 'Devices',
+                      href: '/devices',
+                      icon: Fingerprint,
+                  },
+                  {
+                      title: 'Notifications',
+                      href: '/notifications',
+                      icon: Bell,
+                      badge: unread > 0 ? unread : undefined,
+                  },
+              ])
+            : null,
+        !isPlatform
+            ? navGroup('People', [
+                  can?.manageEmployees && {
+                      title: 'Employees',
+                      href: '/employees',
+                      icon: Users,
+                  },
+                  can?.manageDepartments && {
+                      title: 'Departments',
+                      href: '/departments',
+                      icon: Layers3,
+                  },
+                  can?.manageDesignations && {
+                      title: 'Designations',
+                      href: '/designations',
+                      icon: ClipboardList,
+                  },
+                  can?.manageRoles && {
+                      title: 'Roles',
+                      href: '/roles',
+                      icon: Shield,
+                  },
+              ])
+            : null,
+        !isPlatform
+            ? navGroup('Attendance', [
+                  can?.manageOffices && {
+                      title: 'Offices & networks',
+                      href: '/offices',
+                      icon: Building2,
+                  },
+                  can?.manageShifts && {
+                      title: 'Shifts',
+                      href: '/shifts',
+                      icon: Clock3,
+                  },
+                  can?.manageSettings && {
+                      title: 'Working days',
+                      href: '/working-days',
+                      icon: CalendarDays,
+                  },
+                  can?.manageSettings && {
+                      title: 'Attendance mode',
+                      href: '/settings/attendance',
+                      icon: MapPin,
+                  },
+              ])
+            : null,
+        !isPlatform
+            ? navGroup('Leave management', [
+                  can?.approveLeave && {
+                      title: 'Approvals',
+                      href: '/leave/approvals',
+                      icon: Inbox,
+                  },
+                  can?.manageLeave && {
+                      title: 'Leave types',
+                      href: '/leave/types',
+                      icon: ClipboardList,
+                  },
+              ])
+            : null,
+        !isPlatform
+            ? navGroup('Reports', [
+                  can?.viewReports && {
+                      title: 'Attendance',
+                      href: '/reports/attendance',
+                      icon: Network,
+                  },
+                  can?.advancedReports && {
+                      title: 'Advanced',
+                      href: '/reports/advanced',
+                      icon: FileSpreadsheet,
+                  },
+              ])
+            : null,
+        !isPlatform
+            ? navGroup('Workspace', [
+                  can?.manageBilling && {
+                      title: 'Billing',
+                      href: '/billing',
+                      icon: CreditCard,
+                  },
+                  can?.customDomain && {
+                      title: 'Custom domain',
+                      href: '/settings/domains',
+                      icon: Globe,
+                  },
+                  can?.apiAccess && {
+                      title: 'API tokens',
+                      href: '/settings/api-tokens',
+                      icon: KeyRound,
+                  },
+                  can?.viewAudit && {
+                      title: 'Audit log',
+                      href: '/audit-logs',
+                      icon: ScrollText,
+                  },
+              ])
+            : null,
+        isPlatform
+            ? navGroup('Platform', [
+                  {
+                      title: 'Tenants',
+                      href: '/platform/tenants',
+                      icon: Shield,
+                  },
+                  {
+                      title: 'Plans',
+                      href: '/platform/plans',
+                      icon: ClipboardList,
+                  },
+                  {
+                      title: 'Payments',
+                      href: '/platform/payments',
+                      icon: Receipt,
+                  },
+                  {
+                      title: 'Leads',
+                      href: '/platform/leads',
+                      icon: Inbox,
+                  },
+              ])
+            : null,
+    ].filter((group): group is NavGroup => group !== null);
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -238,7 +225,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link href={isPlatform ? '/platform' : dashboard()} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
@@ -247,7 +234,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain groups={groups} />
             </SidebarContent>
 
             <SidebarFooter>

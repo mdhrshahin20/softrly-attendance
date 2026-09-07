@@ -3,6 +3,7 @@
 use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\CaptureMarketingAttribution;
 use App\Http\Middleware\EnsureActiveEmployee;
+use App\Http\Middleware\EnsureCurrentTenant;
 use App\Http\Middleware\EnsureOfficeNetwork;
 use App\Http\Middleware\EnsurePlanFeature;
 use App\Http\Middleware\EnsurePlatformAdmin;
@@ -15,8 +16,8 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Spatie\Multitenancy\Exceptions\NoCurrentTenant;
 use Spatie\Multitenancy\Http\Middleware\EnsureValidTenantSession;
-use Spatie\Multitenancy\Http\Middleware\NeedsTenant;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
 
@@ -41,7 +42,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'tenant' => NeedsTenant::class,
+            'tenant' => EnsureCurrentTenant::class,
             'tenant.session' => EnsureValidTenantSession::class,
             'office.network' => EnsureOfficeNetwork::class,
             'active.employee' => EnsureActiveEmployee::class,
@@ -57,4 +58,18 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        $exceptions->render(function (NoCurrentTenant $exception, Request $request) {
+            if ($request->user()?->is_platform_admin) {
+                return redirect()->route('platform.dashboard');
+            }
+
+            if ($request->user()) {
+                return redirect()->route('dashboard')->withErrors([
+                    'tenant' => 'No company workspace is assigned to this account.',
+                ]);
+            }
+
+            return redirect()->route('login');
+        });
     })->create();
