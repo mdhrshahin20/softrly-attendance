@@ -25,7 +25,7 @@ export default function PlatformTenants({ tenants, plans, stats }: Props) {
     return (
         <>
             <Head title="Platform tenants" />
-            <div className="flex flex-col gap-6 p-4">
+            <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 md:p-6 lg:p-8">
                 <h1 className="text-2xl font-semibold">Platform tenants</h1>
                 <div className="grid gap-4 sm:grid-cols-4">
                     <Card><CardHeader><CardTitle>Total</CardTitle></CardHeader><CardContent className="text-2xl font-semibold">{stats.total}</CardContent></Card>

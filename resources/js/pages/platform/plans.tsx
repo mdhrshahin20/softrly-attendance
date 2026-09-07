@@ -19,7 +19,7 @@ export default function PlatformPlans({ plans }: { plans: Plan[] }) {
     return (
         <>
             <Head title="Plans" />
-            <div className="flex flex-col gap-6 p-4">
+            <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 md:p-6 lg:p-8">
                 <h1 className="text-2xl font-semibold">Plans</h1>
                 <div className="grid gap-4 lg:grid-cols-2">
                     {plans.map((plan) => (

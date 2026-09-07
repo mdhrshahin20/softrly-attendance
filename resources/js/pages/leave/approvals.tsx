@@ -1,4 +1,9 @@
 import { Form, Head } from '@inertiajs/react';
+import { Inbox } from 'lucide-react';
+import { DataTable } from '@/components/data-table';
+import { EmptyState } from '@/components/empty-state';
+import { PageHeader } from '@/components/page-header';
+import { PageShell } from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
 
 type Row = {
@@ -19,54 +24,74 @@ export default function LeaveApprovals({ requests }: { requests: Row[] }) {
     return (
         <>
             <Head title="Leave approvals" />
-            <div className="flex flex-col gap-6 p-4">
-                <h1 className="text-2xl font-semibold">Leave approvals</h1>
-                <div className="overflow-hidden rounded-xl border">
-                    <table className="w-full text-sm">
-                        <thead className="bg-muted/50 text-left">
+            <PageShell>
+                <PageHeader
+                    title="Leave approvals"
+                    description="Review pending requests. Approve or reject with a single action."
+                />
+
+                {requests.length === 0 ? (
+                    <div className="rounded-xl border">
+                        <EmptyState
+                            icon={Inbox}
+                            title="No pending requests"
+                            description="New leave requests from your team will show up here."
+                        />
+                    </div>
+                ) : (
+                    <DataTable>
+                        <thead>
                             <tr>
-                                <th className="px-4 py-3">Employee</th>
-                                <th className="px-4 py-3">Type</th>
-                                <th className="px-4 py-3">Dates</th>
-                                <th className="px-4 py-3">Days</th>
-                                <th className="px-4 py-3">Reason</th>
-                                <th className="px-4 py-3" />
+                                <th>Employee</th>
+                                <th>Type</th>
+                                <th>Dates</th>
+                                <th>Days</th>
+                                <th>Reason</th>
+                                <th />
                             </tr>
                         </thead>
                         <tbody>
                             {requests.map((row) => (
-                                <tr key={row.id} className="border-t align-top">
-                                    <td className="px-4 py-3">
-                                        <div>{row.employee}</div>
-                                        <div className="text-muted-foreground text-xs">{row.employee_code} · {row.department ?? 'No department'}</div>
+                                <tr key={row.id} className="align-top">
+                                    <td>
+                                        <div className="font-medium">{row.employee}</div>
+                                        <div className="text-muted-foreground text-xs">
+                                            {row.employee_code} · {row.department ?? 'No department'}
+                                        </div>
                                     </td>
-                                    <td className="px-4 py-3">{row.leave_type}</td>
-                                    <td className="px-4 py-3">{row.start_date} – {row.end_date}<div className="text-muted-foreground text-xs">{row.duration_type}</div></td>
-                                    <td className="px-4 py-3">{row.total_days}</td>
-                                    <td className="px-4 py-3 max-w-xs">{row.reason}</td>
-                                    <td className="px-4 py-3">
+                                    <td>{row.leave_type}</td>
+                                    <td>
+                                        {row.start_date} – {row.end_date}
+                                        <div className="text-muted-foreground text-xs">{row.duration_type}</div>
+                                    </td>
+                                    <td>{row.total_days}</td>
+                                    <td className="max-w-xs">{row.reason}</td>
+                                    <td>
                                         <div className="flex flex-col gap-2">
-                                            <Form action={`/leave/${row.id}/approve`} method="post" className="flex gap-2">
+                                            <Form
+                                                action={`/leave/${row.id}/approve`}
+                                                method="post"
+                                                className="flex gap-2"
+                                            >
                                                 <input type="hidden" name="comment" value="Approved" />
-                                                <Button type="submit" size="sm">Approve</Button>
+                                                <Button type="submit" size="sm">
+                                                    Approve
+                                                </Button>
                                             </Form>
                                             <Form action={`/leave/${row.id}/reject`} method="post">
                                                 <input type="hidden" name="comment" value="Rejected" />
-                                                <Button type="submit" size="sm" variant="destructive">Reject</Button>
+                                                <Button type="submit" size="sm" variant="destructive">
+                                                    Reject
+                                                </Button>
                                             </Form>
                                         </div>
                                     </td>
                                 </tr>
                             ))}
-                            {requests.length === 0 && (
-                                <tr>
-                                    <td className="text-muted-foreground px-4 py-6" colSpan={6}>No pending leave requests.</td>
-                                </tr>
-                            )}
                         </tbody>
-                    </table>
-                </div>
-            </div>
+                    </DataTable>
+                )}
+            </PageShell>
         </>
     );
 }

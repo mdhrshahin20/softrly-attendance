@@ -35,6 +35,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarRail,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import type { NavGroup, NavItem } from '@/types';
@@ -63,7 +64,7 @@ export function AppSidebar() {
             },
         ]),
         !isPlatform
-            ? navGroup('My work', [
+            ? navGroup('My day', [
                   {
                       title: 'Calendar',
                       href: '/attendance/calendar',
@@ -110,15 +111,24 @@ export function AppSidebar() {
                       href: '/designations',
                       icon: ClipboardList,
                   },
-                  can?.manageRoles && {
-                      title: 'Roles',
-                      href: '/roles',
-                      icon: Shield,
+              ])
+            : null,
+        !isPlatform
+            ? navGroup('Leave', [
+                  can?.approveLeave && {
+                      title: 'Approvals',
+                      href: '/leave/approvals',
+                      icon: Inbox,
+                  },
+                  can?.manageLeave && {
+                      title: 'Leave types',
+                      href: '/leave/types',
+                      icon: ClipboardList,
                   },
               ])
             : null,
         !isPlatform
-            ? navGroup('Attendance', [
+            ? navGroup('Workforce', [
                   can?.manageOffices && {
                       title: 'Offices & networks',
                       href: '/offices',
@@ -142,20 +152,6 @@ export function AppSidebar() {
               ])
             : null,
         !isPlatform
-            ? navGroup('Leave management', [
-                  can?.approveLeave && {
-                      title: 'Approvals',
-                      href: '/leave/approvals',
-                      icon: Inbox,
-                  },
-                  can?.manageLeave && {
-                      title: 'Leave types',
-                      href: '/leave/types',
-                      icon: ClipboardList,
-                  },
-              ])
-            : null,
-        !isPlatform
             ? navGroup('Reports', [
                   can?.viewReports && {
                       title: 'Attendance',
@@ -170,7 +166,12 @@ export function AppSidebar() {
               ])
             : null,
         !isPlatform
-            ? navGroup('Workspace', [
+            ? navGroup('Settings', [
+                  can?.manageRoles && {
+                      title: 'Roles',
+                      href: '/roles',
+                      icon: Shield,
+                  },
                   can?.manageBilling && {
                       title: 'Billing',
                       href: '/billing',
@@ -194,12 +195,16 @@ export function AppSidebar() {
               ])
             : null,
         isPlatform
-            ? navGroup('Platform', [
+            ? navGroup('Customers', [
                   {
                       title: 'Tenants',
                       href: '/platform/tenants',
-                      icon: Shield,
+                      icon: Building2,
                   },
+              ])
+            : null,
+        isPlatform
+            ? navGroup('Billing', [
                   {
                       title: 'Plans',
                       href: '/platform/plans',
@@ -210,6 +215,10 @@ export function AppSidebar() {
                       href: '/platform/payments',
                       icon: Receipt,
                   },
+              ])
+            : null,
+        isPlatform
+            ? navGroup('Growth', [
                   {
                       title: 'Leads',
                       href: '/platform/leads',
@@ -220,7 +229,7 @@ export function AppSidebar() {
     ].filter((group): group is NavGroup => group !== null);
 
     return (
-        <Sidebar collapsible="icon" variant="inset">
+        <Sidebar collapsible="icon">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
@@ -250,6 +259,7 @@ export function AppSidebar() {
                 />
                 <NavUser />
             </SidebarFooter>
+            <SidebarRail />
         </Sidebar>
     );
 }

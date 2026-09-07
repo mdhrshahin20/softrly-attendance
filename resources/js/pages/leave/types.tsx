@@ -17,7 +17,7 @@ export default function LeaveTypes({ types }: { types: LeaveType[] }) {
     return (
         <>
             <Head title="Leave types" />
-            <div className="flex flex-col gap-6 p-4">
+            <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 md:p-6 lg:p-8">
                 <h1 className="text-2xl font-semibold">Leave types</h1>
                 <Form action="/leave/types" method="post" className="grid max-w-5xl gap-2 md:grid-cols-6">
                     <Input name="name" placeholder="Casual Leave" required />

@@ -1,4 +1,7 @@
 import { Form, Head } from '@inertiajs/react';
+import { DataTable } from '@/components/data-table';
+import { PageHeader } from '@/components/page-header';
+import { PageShell } from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -20,8 +23,11 @@ export default function DesignationsIndex({
     return (
         <>
             <Head title="Designations" />
-            <div className="flex flex-col gap-6 p-4">
-                <h1 className="text-2xl font-semibold">Designations</h1>
+            <PageShell>
+                <PageHeader
+                    title="Designations"
+                    description="Job titles used across departments."
+                />
                 <Form action="/designations" method="post" className="flex max-w-3xl flex-wrap gap-2">
                     <Input name="name" placeholder="Software Engineer" required />
                     <select name="department_id" className="border-input h-9 rounded-md border px-3 text-sm">
@@ -35,27 +41,25 @@ export default function DesignationsIndex({
                     <input type="hidden" name="status" value="active" />
                     <Button type="submit">Add</Button>
                 </Form>
-                <div className="overflow-hidden rounded-xl border">
-                    <table className="w-full text-sm">
-                        <thead className="bg-muted/50 text-left">
-                            <tr>
-                                <th className="px-4 py-3">Name</th>
-                                <th className="px-4 py-3">Department</th>
-                                <th className="px-4 py-3">Employees</th>
+                <DataTable>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Employees</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {designations.map((designation) => (
+                            <tr key={designation.id}>
+                                <td className="font-medium">{designation.name}</td>
+                                <td>{designation.department?.name ?? '—'}</td>
+                                <td>{designation.employees_count}</td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {designations.map((designation) => (
-                                <tr key={designation.id} className="border-t">
-                                    <td className="px-4 py-3">{designation.name}</td>
-                                    <td className="px-4 py-3">{designation.department?.name ?? '—'}</td>
-                                    <td className="px-4 py-3">{designation.employees_count}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                        ))}
+                    </tbody>
+                </DataTable>
+            </PageShell>
         </>
     );
 }

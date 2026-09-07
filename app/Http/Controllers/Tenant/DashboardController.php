@@ -100,6 +100,8 @@ class DashboardController extends Controller
         $canApprove = $user?->can('leave.approve') ?? false;
 
         $teamToday = null;
+        $lateToday = [];
+        $onLeaveToday = [];
         $pendingLeaveCount = 0;
 
         if ($isHr || $canApprove) {
@@ -114,26 +116,37 @@ class DashboardController extends Controller
 
         if ($isHr) {
             $todayDate = now()->toDateString();
-            $totalEmployees = Employee::query()->active()->count();
-            $presentToday = Attendance::query()
+            $todayRecords = Attendance::query()
+                ->with(['employee.department', 'employee.office'])
                 ->whereDate('attendance_date', $todayDate)
+                ->get();
+
+            $lateRecords = $todayRecords
+                ->where('status', AttendanceStatus::Late)
+                ->sortByDesc('late_minutes')
+                ->values();
+            $leaveRecords = $todayRecords
+                ->where('status', AttendanceStatus::Leave)
+                ->sortBy(fn (Attendance $record): string => $record->employee?->full_name ?? '')
+                ->values();
+
+            $leaveTypesByEmployee = $this->leaveTypesFor($leaveRecords->pluck('employee_id')->filter()->all(), $todayDate);
+
+            $lateToday = $this->mapTeamAttendance($lateRecords);
+            $onLeaveToday = $this->mapTeamAttendance($leaveRecords, $leaveTypesByEmployee);
+
+            $totalEmployees = Employee::query()->active()->count();
+            $presentToday = $todayRecords
                 ->whereIn('status', [AttendanceStatus::Present, AttendanceStatus::Late])
                 ->count();
-            $lateToday = Attendance::query()
-                ->whereDate('attendance_date', $todayDate)
-                ->where('status', AttendanceStatus::Late)
-                ->count();
-            $onLeaveToday = Attendance::query()
-                ->whereDate('attendance_date', $todayDate)
-                ->where('status', AttendanceStatus::Leave)
-                ->count();
+            $onLeaveCount = $leaveRecords->count();
 
             $teamToday = [
                 'total_employees' => $totalEmployees,
                 'present' => $presentToday,
-                'late' => $lateToday,
-                'on_leave' => $onLeaveToday,
-                'absent' => max(0, $totalEmployees - $presentToday - $onLeaveToday),
+                'late' => $lateRecords->count(),
+                'on_leave' => $onLeaveCount,
+                'absent' => max(0, $totalEmployees - $presentToday - $onLeaveCount),
             ];
         }
 
@@ -169,10 +182,67 @@ class DashboardController extends Controller
             'attendancePolicy' => $policy->snapshot(),
             'month' => $monthCounts,
             'teamToday' => $teamToday,
+            'lateToday' => $lateToday,
+            'onLeaveToday' => $onLeaveToday,
             'leaveBalances' => $leaveBalances,
             'upcomingHolidays' => $upcomingHolidays,
             'recentLeaves' => $recentLeaves,
             'pendingLeaveCount' => $pendingLeaveCount,
         ]);
+    }
+
+    /**
+     * @param  iterable<int, Attendance>  $records
+     * @param  array<int, string|null>  $leaveTypesByEmployee
+     * @return list<array{
+     *     id: int,
+     *     full_name: string,
+     *     employee_code: string|null,
+     *     department: string|null,
+     *     office: string|null,
+     *     check_in_at: string|null,
+     *     late_minutes: int,
+     *     leave_type: string|null
+     * }>
+     */
+    private function mapTeamAttendance(iterable $records, array $leaveTypesByEmployee = []): array
+    {
+        return collect($records)
+            ->filter(fn (Attendance $record): bool => $record->employee !== null)
+            ->map(fn (Attendance $record): array => [
+                'id' => $record->employee->id,
+                'full_name' => $record->employee->full_name,
+                'employee_code' => $record->employee->employee_code,
+                'department' => $record->employee->department?->name,
+                'office' => $record->employee->office?->name,
+                'check_in_at' => $record->check_in_at?->timezone(config('app.timezone'))->toIso8601String(),
+                'late_minutes' => $record->late_minutes,
+                'leave_type' => $leaveTypesByEmployee[$record->employee_id] ?? null,
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  list<int>  $employeeIds
+     * @return array<int, string|null>
+     */
+    private function leaveTypesFor(array $employeeIds, string $todayDate): array
+    {
+        if ($employeeIds === []) {
+            return [];
+        }
+
+        return LeaveRequest::query()
+            ->with('leaveType')
+            ->where('status', LeaveRequestStatus::Approved)
+            ->whereIn('employee_id', $employeeIds)
+            ->whereDate('start_date', '<=', $todayDate)
+            ->whereDate('end_date', '>=', $todayDate)
+            ->get()
+            ->mapWithKeys(fn (LeaveRequest $leave): array => [
+                $leave->employee_id => $leave->leaveType?->name,
+            ])
+            ->all();
     }
 }

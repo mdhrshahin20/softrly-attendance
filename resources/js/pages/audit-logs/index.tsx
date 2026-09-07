@@ -25,7 +25,7 @@ export default function AuditLogsIndex({
     return (
         <>
             <Head title="Audit log" />
-            <div className="flex flex-col gap-4 p-4">
+            <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 md:p-6 lg:p-8">
                 <div>
                     <h1 className="text-2xl font-semibold">Audit log</h1>
                     <p className="text-muted-foreground text-sm">Sensitive actions are recorded with actor, IP, and payload.</p>

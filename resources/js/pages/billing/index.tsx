@@ -1,7 +1,10 @@
 import { Form, Head } from '@inertiajs/react';
+import { PageHeader } from '@/components/page-header';
+import { PageShell } from '@/components/page-shell';
+import { StatusBadge } from '@/components/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 type Plan = {
     id: number;
@@ -49,27 +52,64 @@ export default function BillingIndex({ subscription, plans, payments, cycles }: 
     return (
         <>
             <Head title="Billing" />
-            <div className="flex flex-col gap-6 p-4">
-                <h1 className="text-2xl font-semibold">Billing</h1>
+            <PageShell>
+                <PageHeader
+                    title="Billing"
+                    description="Plan, usage, and invoices for this workspace."
+                />
                 <div className="grid gap-4 lg:grid-cols-3">
                     <Card>
-                        <CardHeader><CardTitle>Current plan</CardTitle></CardHeader>
-                        <CardContent className="space-y-2 text-sm">
+                        <CardHeader>
+                            <CardTitle>Current plan</CardTitle>
+                            <CardDescription>Usage is counted from live workspace data.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3 text-sm">
                             <div className="text-xl font-semibold">{subscription.plan_name ?? 'No plan'}</div>
-                            <div><Badge>{subscription.status_label}</Badge></div>
+                            <StatusBadge
+                                status={subscription.status ?? 'inactive'}
+                                label={subscription.status_label ?? 'Inactive'}
+                            />
                             {subscription.is_on_trial && subscription.trial_ends_at && (
-                                <p>Trial ends {subscription.trial_ends_at.slice(0, 10)}</p>
+                                <p className="text-muted-foreground">
+                                    Trial ends {subscription.trial_ends_at.slice(0, 10)}
+                                </p>
                             )}
                             {subscription.current_period_end && (
-                                <p>Current period ends {subscription.current_period_end.slice(0, 10)}</p>
+                                <p className="text-muted-foreground">
+                                    Renews {subscription.current_period_end.slice(0, 10)}
+                                </p>
                             )}
-                            <p>
-                                Employees {subscription.employees_used}
-                                {subscription.employee_limit !== null ? ` / ${subscription.employee_limit}` : ' / unlimited'}
-                            </p>
+                            <div>
+                                <div className="flex justify-between">
+                                    <span>Employees</span>
+                                    <span className="font-medium">
+                                        {subscription.employees_used}
+                                        {subscription.employee_limit !== null
+                                            ? ` / ${subscription.employee_limit}`
+                                            : ' / unlimited'}
+                                    </span>
+                                </div>
+                                {subscription.employee_limit !== null && (
+                                    <div className="bg-muted mt-2 h-1.5 overflow-hidden rounded-full">
+                                        <div
+                                            className="bg-primary h-full rounded-full"
+                                            style={{
+                                                width: `${Math.min(
+                                                    100,
+                                                    (subscription.employees_used /
+                                                        Math.max(subscription.employee_limit, 1)) *
+                                                        100,
+                                                )}%`,
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                             <p>
                                 Offices {subscription.offices_used}
-                                {subscription.office_limit !== null ? ` / ${subscription.office_limit}` : ' / unlimited'}
+                                {subscription.office_limit !== null
+                                    ? ` / ${subscription.office_limit}`
+                                    : ' / unlimited'}
                             </p>
                         </CardContent>
                     </Card>
@@ -133,7 +173,7 @@ export default function BillingIndex({ subscription, plans, payments, cycles }: 
                         <Button type="submit" variant="outline">Cancel subscription</Button>
                     </Form>
                 )}
-            </div>
+            </PageShell>
         </>
     );
 }

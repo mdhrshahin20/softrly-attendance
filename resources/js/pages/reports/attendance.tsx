@@ -1,7 +1,9 @@
 import { Form, Head, Link, router } from '@inertiajs/react';
+import { PageHeader } from '@/components/page-header';
+import { PageShell } from '@/components/page-shell';
+import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 
 type RecordRow = {
     id: number;
@@ -44,35 +46,40 @@ export default function AttendanceReport({ records, filters, employees, departme
     return (
         <>
             <Head title="Attendance reports" />
-            <div className="flex flex-col gap-4 p-4">
-                <div className="flex items-center justify-between gap-3">
-                    <h1 className="text-2xl font-semibold">Attendance report</h1>
-                    <div className="flex flex-wrap gap-2">
-                    {canAdvanced && (
-                        <Button variant="outline" asChild>
-                            <Link href="/reports/advanced">Advanced reports</Link>
-                        </Button>
-                    )}
-                    {canExport ? (
-                    <Button
-                        variant="outline"
-                        onClick={() =>
-                            window.location.assign(
-                                `/reports/attendance?${new URLSearchParams({
-                                    from: filters.from,
-                                    to: filters.to,
-                                    export: 'csv',
-                                }).toString()}`,
-                            )
-                        }
-                    >
-                        Export CSV
-                    </Button>
-                    ) : (
-                        <p className="text-muted-foreground text-sm">CSV export is on Business and above.</p>
-                    )}
-                    </div>
-                </div>
+            <PageShell>
+                <PageHeader
+                    title="Attendance report"
+                    description="Filter by date, person, office, and status."
+                    actions={
+                        <>
+                            {canAdvanced && (
+                                <Button variant="outline" asChild>
+                                    <Link href="/reports/advanced">Advanced reports</Link>
+                                </Button>
+                            )}
+                            {canExport ? (
+                                <Button
+                                    variant="outline"
+                                    onClick={() =>
+                                        window.location.assign(
+                                            `/reports/attendance?${new URLSearchParams({
+                                                from: filters.from,
+                                                to: filters.to,
+                                                export: 'csv',
+                                            }).toString()}`,
+                                        )
+                                    }
+                                >
+                                    Export CSV
+                                </Button>
+                            ) : (
+                                <p className="text-muted-foreground text-sm">
+                                    CSV export is on Business and above.
+                                </p>
+                            )}
+                        </>
+                    }
+                />
 
                 <form
                     className="grid gap-2 md:grid-cols-6"
@@ -137,7 +144,7 @@ export default function AttendanceReport({ records, filters, employees, departme
                                     </td>
                                     <td className="px-4 py-3">{record.office?.name ?? '—'}</td>
                                     <td className="px-4 py-3">
-                                        <Badge>{record.status}</Badge>
+                                        <StatusBadge status={record.status} />
                                     </td>
                                     <td className="px-4 py-3">{record.check_in_at ? new Date(record.check_in_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
                                     <td className="px-4 py-3">{record.check_out_at ? new Date(record.check_out_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
@@ -166,7 +173,7 @@ export default function AttendanceReport({ records, filters, employees, departme
                         <Button type="submit" className="sm:col-span-6">Save adjustment</Button>
                     </Form>
                 )}
-            </div>
+            </PageShell>
         </>
     );
 }

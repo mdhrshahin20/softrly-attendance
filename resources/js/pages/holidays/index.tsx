@@ -25,7 +25,7 @@ export default function HolidaysIndex({ holidays, offices, departments, types, c
     return (
         <>
             <Head title="Holidays" />
-            <div className="flex flex-col gap-6 p-4">
+            <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 md:p-6 lg:p-8">
                 <h1 className="text-2xl font-semibold">Holidays</h1>
                 {canManage && (
                     <Form action="/holidays" method="post" className="grid max-w-5xl gap-2 md:grid-cols-7">

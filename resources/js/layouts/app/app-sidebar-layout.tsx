@@ -18,7 +18,7 @@ export default function AppSidebarLayout({
             <AppContent variant="sidebar" className="min-w-0 overflow-x-clip">
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 {showBillingBanner && (
-                    <div className="mx-4 mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+                    <div className="mx-4 mt-4 rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning-foreground">
                         Your trial or subscription is not active. You can still view data, but check-in, leave, and other changes are paused.{' '}
                         {can?.manageBilling ? (
                             <Link href="/billing" className="font-medium underline">

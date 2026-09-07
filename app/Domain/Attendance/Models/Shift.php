@@ -2,11 +2,13 @@
 
 namespace App\Domain\Attendance\Models;
 
+use App\Domain\Employee\Models\Employee;
 use App\Domain\Shared\Concerns\BelongsToTenant;
 use Database\Factories\ShiftFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -38,6 +40,14 @@ class Shift extends Model
     protected static function newFactory(): ShiftFactory
     {
         return ShiftFactory::new();
+    }
+
+    /**
+     * @return HasMany<Employee, $this>
+     */
+    public function employees(): HasMany
+    {
+        return $this->hasMany(Employee::class);
     }
 
     protected function casts(): array

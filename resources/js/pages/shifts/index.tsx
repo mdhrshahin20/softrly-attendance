@@ -1,4 +1,9 @@
 import { Form, Head } from '@inertiajs/react';
+import { useState } from 'react';
+import { DataTable } from '@/components/data-table';
+import { PageHeader } from '@/components/page-header';
+import { PageShell } from '@/components/page-shell';
+import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -10,46 +15,150 @@ type Shift = {
     grace_minutes: number;
     minimum_work_minutes: number;
     status: string;
+    employees_count: number;
 };
 
+function ShiftFields({ shift }: { shift?: Shift }) {
+    return (
+        <>
+            <Input name="name" defaultValue={shift?.name} placeholder="General Shift" required />
+            <Input name="start_time" type="time" defaultValue={shift?.start_time} required />
+            <Input name="end_time" type="time" defaultValue={shift?.end_time} required />
+            <Input
+                name="grace_minutes"
+                type="number"
+                min={0}
+                max={180}
+                defaultValue={shift?.grace_minutes ?? 10}
+                required
+                aria-label="Grace minutes"
+            />
+            <Input
+                name="minimum_work_minutes"
+                type="number"
+                min={60}
+                max={1440}
+                defaultValue={shift?.minimum_work_minutes ?? 480}
+                required
+                aria-label="Minimum work minutes"
+            />
+            <select
+                name="status"
+                defaultValue={shift?.status ?? 'active'}
+                className="border-input h-9 rounded-md border bg-transparent px-3 text-sm"
+                aria-label="Status"
+            >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+        </>
+    );
+}
+
 export default function ShiftsIndex({ shifts }: { shifts: Shift[] }) {
+    const [editingId, setEditingId] = useState<number | null>(null);
+
     return (
         <>
             <Head title="Shifts" />
-            <div className="flex flex-col gap-6 p-4">
-                <h1 className="text-2xl font-semibold">Work shifts</h1>
-                <Form action="/shifts" method="post" className="grid max-w-4xl gap-2 sm:grid-cols-5">
-                    <Input name="name" placeholder="General Shift" required />
-                    <Input name="start_time" type="time" required />
-                    <Input name="end_time" type="time" required />
-                    <Input name="grace_minutes" type="number" defaultValue={10} required />
-                    <input type="hidden" name="minimum_work_minutes" value="480" />
-                    <input type="hidden" name="status" value="active" />
+            <PageShell>
+                <PageHeader
+                    title="Work shifts"
+                    description="Start time, end time, and late grace for each shift."
+                />
+                <Form
+                    action="/shifts"
+                    method="post"
+                    className="grid max-w-5xl gap-2 sm:grid-cols-2 lg:grid-cols-7"
+                >
+                    <ShiftFields />
                     <Button type="submit">Add shift</Button>
                 </Form>
-                <div className="overflow-hidden rounded-xl border">
-                    <table className="w-full text-sm">
-                        <thead className="bg-muted/50 text-left">
-                            <tr>
-                                <th className="px-4 py-3">Name</th>
-                                <th className="px-4 py-3">Hours</th>
-                                <th className="px-4 py-3">Grace</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {shifts.map((shift) => (
-                                <tr key={shift.id} className="border-t">
-                                    <td className="px-4 py-3">{shift.name}</td>
-                                    <td className="px-4 py-3">
-                                        {String(shift.start_time).slice(0, 5)} – {String(shift.end_time).slice(0, 5)}
+                <DataTable>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Hours</th>
+                            <th>Grace</th>
+                            <th>Min. work</th>
+                            <th>People</th>
+                            <th>Status</th>
+                            <th />
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {shifts.map((shift) =>
+                            editingId === shift.id ? (
+                                <tr key={shift.id}>
+                                    <td colSpan={7}>
+                                        <Form
+                                            action={`/shifts/${shift.id}`}
+                                            method="put"
+                                            className="grid gap-2 py-1 sm:grid-cols-2 lg:grid-cols-7"
+                                            options={{ onSuccess: () => setEditingId(null) }}
+                                        >
+                                            <ShiftFields shift={shift} />
+                                            <div className="flex gap-2">
+                                                <Button type="submit">Save</Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    onClick={() => setEditingId(null)}
+                                                >
+                                                    Cancel
+                                                </Button>
+                                            </div>
+                                        </Form>
                                     </td>
-                                    <td className="px-4 py-3">{shift.grace_minutes} min</td>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                            ) : (
+                                <tr key={shift.id}>
+                                    <td className="font-medium">{shift.name}</td>
+                                    <td>
+                                        {shift.start_time} – {shift.end_time}
+                                    </td>
+                                    <td>{shift.grace_minutes} min</td>
+                                    <td>{shift.minimum_work_minutes} min</td>
+                                    <td>{shift.employees_count}</td>
+                                    <td>
+                                        <StatusBadge status={shift.status} withIcon={false} />
+                                    </td>
+                                    <td className="text-right">
+                                        <div className="flex justify-end gap-1">
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setEditingId(shift.id)}
+                                            >
+                                                Edit
+                                            </Button>
+                                            <Form action={`/shifts/${shift.id}`} method="delete">
+                                                {({ processing }) => (
+                                                    <Button
+                                                        type="submit"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="text-destructive"
+                                                        disabled={processing || shift.employees_count > 0}
+                                                        title={
+                                                            shift.employees_count > 0
+                                                                ? 'Reassign employees before deleting'
+                                                                : 'Delete shift'
+                                                        }
+                                                    >
+                                                        Delete
+                                                    </Button>
+                                                )}
+                                            </Form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ),
+                        )}
+                    </tbody>
+                </DataTable>
+            </PageShell>
         </>
     );
 }

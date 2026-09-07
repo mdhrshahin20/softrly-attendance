@@ -1,6 +1,8 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import InputError from '@/components/input-error';
+import { PageHeader } from '@/components/page-header';
+import { PageShell } from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -57,15 +59,23 @@ export default function EmployeeForm({
     return (
         <>
             <Head title={employee ? 'Edit employee' : 'Add employee'} />
-            <div className="mx-auto flex max-w-3xl flex-col gap-6 p-4">
-                <div>
-                    <h1 className="text-2xl font-semibold">
-                        {employee ? 'Edit employee' : 'Add employee'}
-                    </h1>
-                    <p className="text-muted-foreground text-sm">
-                        An invitation-ready login is created with the employee record.
-                    </p>
-                </div>
+            <PageShell className="max-w-3xl">
+                <PageHeader
+                    title={employee ? 'Edit employee' : 'Add employee'}
+                    description="An invitation-ready login is created with the employee record."
+                    actions={
+                        <div className="flex gap-2">
+                            {employee ? (
+                                <Button variant="outline" asChild>
+                                    <Link href={`/employees/${employee.id}`}>View profile</Link>
+                                </Button>
+                            ) : null}
+                            <Button variant="outline" asChild>
+                                <Link href="/employees">Back</Link>
+                            </Button>
+                        </div>
+                    }
+                />
 
                 <Form
                     action={action}
@@ -177,7 +187,7 @@ export default function EmployeeForm({
                         </>
                     )}
                 </Form>
-            </div>
+            </PageShell>
         </>
     );
 }

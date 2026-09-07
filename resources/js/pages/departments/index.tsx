@@ -1,4 +1,8 @@
 import { Form, Head } from '@inertiajs/react';
+import { DataTable } from '@/components/data-table';
+import { PageHeader } from '@/components/page-header';
+import { PageShell } from '@/components/page-shell';
+import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -14,37 +18,40 @@ export default function DepartmentsIndex({ departments }: { departments: Departm
     return (
         <>
             <Head title="Departments" />
-            <div className="flex flex-col gap-6 p-4">
-                <h1 className="text-2xl font-semibold">Departments</h1>
+            <PageShell>
+                <PageHeader
+                    title="Departments"
+                    description="Group employees by team for leave and reporting."
+                />
                 <Form action="/departments" method="post" className="flex max-w-3xl flex-wrap gap-2">
                     <Input name="name" placeholder="Engineering" required />
                     <Input name="code" placeholder="ENG" required />
                     <input type="hidden" name="status" value="active" />
-                    <Button type="submit">Add</Button>
+                    <Button type="submit">Add department</Button>
                 </Form>
-                <div className="overflow-hidden rounded-xl border">
-                    <table className="w-full text-sm">
-                        <thead className="bg-muted/50 text-left">
-                            <tr>
-                                <th className="px-4 py-3">Name</th>
-                                <th className="px-4 py-3">Code</th>
-                                <th className="px-4 py-3">Employees</th>
-                                <th className="px-4 py-3">Status</th>
+                <DataTable>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Code</th>
+                            <th>Employees</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {departments.map((department) => (
+                            <tr key={department.id}>
+                                <td className="font-medium">{department.name}</td>
+                                <td>{department.code}</td>
+                                <td>{department.employees_count}</td>
+                                <td>
+                                    <StatusBadge status={department.status} />
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {departments.map((department) => (
-                                <tr key={department.id} className="border-t">
-                                    <td className="px-4 py-3">{department.name}</td>
-                                    <td className="px-4 py-3">{department.code}</td>
-                                    <td className="px-4 py-3">{department.employees_count}</td>
-                                    <td className="px-4 py-3">{department.status}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                        ))}
+                    </tbody>
+                </DataTable>
+            </PageShell>
         </>
     );
 }

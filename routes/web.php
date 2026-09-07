@@ -68,7 +68,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.session'])->group(funct
         Route::get('employees/import/template', [EmployeeImportController::class, 'template'])->name('employees.import.template');
         Route::post('employees/import/preview', [EmployeeImportController::class, 'preview'])->name('employees.import.preview');
         Route::post('employees/import', [EmployeeImportController::class, 'store'])->name('employees.import.store');
-        Route::resource('employees', EmployeeController::class)->except(['show']);
+        Route::resource('employees', EmployeeController::class);
         Route::resource('departments', DepartmentController::class)->except(['show', 'create', 'edit']);
         Route::resource('designations', DesignationController::class)->except(['show', 'create', 'edit']);
         Route::resource('offices', OfficeController::class)->except(['show', 'create', 'edit']);

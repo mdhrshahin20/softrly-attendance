@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Domain\Attendance\Models\Shift;
+use App\Domain\Attendance\Services\EmployeeMonthReportService;
 use App\Domain\Billing\Enums\PlanFeature;
 use App\Domain\Billing\Services\SubscriptionService;
 use App\Domain\Employee\Models\Department;
@@ -101,7 +102,22 @@ class EmployeeController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Employee created.']);
 
-        return to_route('employees.index');
+        return to_route('employees.show', $employee);
+    }
+
+    public function show(Request $request, Employee $employee, EmployeeMonthReportService $monthReport): Response
+    {
+        $this->authorize('view', $employee);
+        $employee->loadMissing(['department', 'designation', 'office', 'shift', 'user.roles']);
+
+        $month = (int) $request->integer('month', (int) now()->month);
+        $year = (int) $request->integer('year', (int) now()->year);
+
+        return Inertia::render('employees/show', [
+            'employee' => $this->payload($employee),
+            ...$monthReport->build($employee, $year, $month),
+            'canEdit' => $request->user()?->can('update', $employee) ?? false,
+        ]);
     }
 
     public function edit(Employee $employee): Response
@@ -134,7 +150,7 @@ class EmployeeController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Employee updated.']);
 
-        return to_route('employees.index');
+        return to_route('employees.show', $employee);
     }
 
     public function destroy(Employee $employee): RedirectResponse
