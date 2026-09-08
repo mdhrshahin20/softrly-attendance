@@ -12,22 +12,22 @@ class NotificationController extends Controller
 {
     public function index(Request $request): Response
     {
-        $notifications = $request->user()
-            ?->notifications()
-            ->latest()
-            ->limit(50)
-            ->get()
-            ->map(fn ($notification): array => [
-                'id' => $notification->id,
-                'title' => $notification->data['title'] ?? 'Notification',
-                'message' => $notification->data['message'] ?? '',
-                'url' => $notification->data['url'] ?? null,
-                'read_at' => $notification->read_at?->toIso8601String(),
-                'created_at' => $notification->created_at?->toIso8601String(),
-            ]);
+        $user = $request->user();
+        abort_unless($user, 403);
 
         return Inertia::render('notifications/index', [
-            'notifications' => $notifications ?? [],
+            'notifications' => $user->notifications()
+                ->latest()
+                ->paginate(20)
+                ->withQueryString()
+                ->through(fn ($notification): array => [
+                    'id' => $notification->id,
+                    'title' => $notification->data['title'] ?? 'Notification',
+                    'message' => $notification->data['message'] ?? '',
+                    'url' => $notification->data['url'] ?? null,
+                    'read_at' => $notification->read_at?->toIso8601String(),
+                    'created_at' => $notification->created_at?->toIso8601String(),
+                ]),
         ]);
     }
 

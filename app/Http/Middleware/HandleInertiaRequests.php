@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Domain\Billing\Services\SubscriptionService;
+use App\Domain\Platform\Services\PlatformSettingsService;
 use App\Domain\Tenant\Models\Tenant;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -46,6 +47,7 @@ class HandleInertiaRequests extends Middleware
                 'id' => $employee->id,
                 'full_name' => $employee->full_name,
                 'employee_code' => $employee->employee_code,
+                'avatar' => $user?->avatar,
             ] : null,
             'subscription' => $subscription,
             'can' => [
@@ -55,11 +57,12 @@ class HandleInertiaRequests extends Middleware
                 'manageDesignations' => $user?->can('designation.manage') ?? false,
                 'manageOffices' => $user?->can('office.manage') ?? false,
                 'manageShifts' => $user?->can('shift.manage') ?? false,
-                'viewReports' => $user?->can('attendance.export') || $user?->can('employee.view') ?? false,
+                'viewReports' => $user?->can('employee.view') ?? false,
                 'markAttendance' => $user?->can('attendance.create') ?? false,
                 'applyLeave' => $user?->can('leave.apply') ?? false,
                 'approveLeave' => $user?->can('leave.approve') ?? false,
                 'manageLeave' => $user?->can('leave.manage') ?? false,
+                'viewLeaveApplications' => ($user?->can('employee.view') || $user?->can('leave.manage') || $user?->can('leave.approve')) ?? false,
                 'viewHolidays' => $user?->can('holiday.view') ?? false,
                 'manageHolidays' => $user?->can('holiday.manage') ?? false,
                 'manageSettings' => $user?->can('settings.manage') ?? false,
@@ -67,7 +70,10 @@ class HandleInertiaRequests extends Middleware
                 'viewAudit' => ($user?->can('audit.view') ?? false) && in_array('audit_log', $subscription['features'] ?? [], true),
                 'manageBilling' => $user?->can('settings.manage') ?? false,
                 'exportReports' => ($user?->can('attendance.export') ?? false) && in_array('exports', $subscription['features'] ?? [], true),
-                'advancedReports' => ($user?->can('attendance.view') ?? false) && in_array('advanced_reports', $subscription['features'] ?? [], true),
+                'advancedReports' => ($user?->can('employee.view') ?? false) && in_array('advanced_reports', $subscription['features'] ?? [], true),
+                'managePayroll' => ($user?->can('payroll.manage') ?? false) && in_array('payroll', $subscription['features'] ?? [], true),
+                'viewPayroll' => ($user?->can('payroll.view') ?? false) && in_array('payroll', $subscription['features'] ?? [], true),
+                'viewPayslips' => ($user?->can('payroll.payslip') || $user?->can('payroll.view') || $user?->can('payroll.manage')) && in_array('payroll', $subscription['features'] ?? [], true),
                 'apiAccess' => ($user?->can('settings.manage') ?? false) && in_array('api_access', $subscription['features'] ?? [], true),
                 'customDomain' => ($user?->can('settings.manage') ?? false) && in_array('custom_domain', $subscription['features'] ?? [], true),
                 'locationAttendance' => in_array('location_attendance', $subscription['features'] ?? [], true),
@@ -75,6 +81,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'unreadNotifications' => $user?->unreadNotifications()->count() ?? 0,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'marketing' => app(PlatformSettingsService::class)->marketingPublic(),
         ];
     }
 }

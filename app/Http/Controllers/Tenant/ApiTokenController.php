@@ -22,24 +22,18 @@ class ApiTokenController extends Controller
         abort_unless($request->user()?->can('settings.manage'), 403);
         abort_unless(app(SubscriptionService::class)->hasFeature(PlanFeature::ApiAccess), 403);
 
-        $tokens = ApiToken::query()
-            ->where('tenant_id', Tenant::current()?->id)
-            ->latest()
-            ->get();
-
-        $payload = [];
-
-        foreach ($tokens as $token) {
-            $payload[] = [
-                'id' => $token->id,
-                'name' => $token->name,
-                'last_used_at' => $token->last_used_at?->toDateTimeString(),
-                'created_at' => $token->created_at?->toDateTimeString(),
-            ];
-        }
-
         return Inertia::render('settings/api-tokens', [
-            'tokens' => $payload,
+            'tokens' => ApiToken::query()
+                ->where('tenant_id', Tenant::current()?->id)
+                ->latest()
+                ->paginate(15)
+                ->withQueryString()
+                ->through(fn (ApiToken $token): array => [
+                    'id' => $token->id,
+                    'name' => $token->name,
+                    'last_used_at' => $token->last_used_at?->toDateTimeString(),
+                    'created_at' => $token->created_at?->toDateTimeString(),
+                ]),
             'plainToken' => $request->session()->get('plain_api_token'),
         ]);
     }

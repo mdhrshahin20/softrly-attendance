@@ -1,12 +1,15 @@
 import { Form, Head, usePage } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
+import { useEffect, useRef, useState } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useInitials } from '@/hooks/use-initials';
 import { edit } from '@/routes/profile';
 import type { Auth } from '@/types';
 import { send } from '@/routes/verification';
@@ -23,6 +26,15 @@ export default function Profile({
     status?: string;
 }) {
     const { auth } = usePage<PageProps>().props;
+    const getInitials = useInitials();
+    const fileInput = useRef<HTMLInputElement>(null);
+    const [preview, setPreview] = useState<string | null>(auth.user.avatar ?? null);
+    const [removeAvatar, setRemoveAvatar] = useState(false);
+
+    useEffect(() => {
+        setPreview(auth.user.avatar ?? null);
+        setRemoveAvatar(false);
+    }, [auth.user.avatar]);
 
     return (
         <>
@@ -34,11 +46,12 @@ export default function Profile({
                 <Heading
                     variant="small"
                     title="Profile"
-                    description="Update your name and email address"
+                    description="Update your photo, name, and email address"
                 />
 
                 <Form
                     {...ProfileController.update.form()}
+                    encType="multipart/form-data"
                     options={{
                         preserveScroll: true,
                     }}
@@ -46,6 +59,73 @@ export default function Profile({
                 >
                     {({ processing, errors }) => (
                         <>
+                            <input
+                                type="hidden"
+                                name="remove_avatar"
+                                value={removeAvatar ? '1' : '0'}
+                            />
+
+                            <div className="flex items-center gap-4">
+                                <Avatar className="size-20 rounded-full">
+                                    {preview ? (
+                                        <AvatarImage src={preview} alt={auth.user.name} />
+                                    ) : null}
+                                    <AvatarFallback className="bg-primary/10 text-primary text-lg font-medium">
+                                        {getInitials(auth.user.name)}
+                                    </AvatarFallback>
+                                </Avatar>
+
+                                <div className="grid gap-2">
+                                    <div className="flex flex-wrap gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => fileInput.current?.click()}
+                                        >
+                                            Upload photo
+                                        </Button>
+                                        {preview && (
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                onClick={() => {
+                                                    setPreview(null);
+                                                    setRemoveAvatar(true);
+
+                                                    if (fileInput.current) {
+                                                        fileInput.current.value = '';
+                                                    }
+                                                }}
+                                            >
+                                                Remove
+                                            </Button>
+                                        )}
+                                    </div>
+                                    <p className="text-muted-foreground text-sm">
+                                        JPG, PNG, or WebP. Max 2 MB.
+                                    </p>
+                                    <input
+                                        ref={fileInput}
+                                        id="avatar"
+                                        name="avatar"
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/webp"
+                                        className="sr-only"
+                                        onChange={(event) => {
+                                            const file = event.target.files?.[0];
+
+                                            if (!file) {
+                                                return;
+                                            }
+
+                                            setRemoveAvatar(false);
+                                            setPreview(URL.createObjectURL(file));
+                                        }}
+                                    />
+                                    <InputError className="mt-1" message={errors.avatar} />
+                                </div>
+                            </div>
+
                             <div className="grid gap-2">
                                 <Label htmlFor="name">Name</Label>
 

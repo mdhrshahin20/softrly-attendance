@@ -36,6 +36,39 @@
 
         @fonts
 
+        @php
+            $marketing = $page['props']['marketing'] ?? [];
+            $gaId = $marketing['ga_measurement_id'] ?? '';
+            $fbId = $marketing['fb_pixel_id'] ?? '';
+            $gtmId = $marketing['gtm_container_id'] ?? '';
+        @endphp
+
+        @if($gtmId)
+            <script async src="https://www.googletagmanager.com/gtm.js?id={{ urlencode($gtmId) }}"></script>
+        @endif
+
+        @if($gaId)
+            <script async src="https://www.googletagmanager.com/gtag/js?id={{ $gaId }}"></script>
+            <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', @json($gaId));
+            </script>
+        @endif
+
+        @if($fbId)
+            <script>
+                !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+                n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+                n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+                t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script',
+                'https://connect.facebook.net/en_US/fbevents.js');
+                fbq('init', @json($fbId));
+                fbq('track', 'PageView');
+            </script>
+        @endif
+
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         <x-inertia::head>

@@ -1,4 +1,6 @@
 import { Form, Head } from '@inertiajs/react';
+import { DeleteConfirm } from '@/components/delete-confirm';
+import { Pagination, type Paginated } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -12,7 +14,7 @@ type RoleRow = {
 
 type Permission = { value: string; label: string };
 
-export default function RolesIndex({ roles, permissions }: { roles: RoleRow[]; permissions: Permission[] }) {
+export default function RolesIndex({ roles, permissions }: { roles: Paginated<RoleRow>; permissions: Permission[] }) {
     return (
         <>
             <Head title="Roles" />
@@ -38,7 +40,7 @@ export default function RolesIndex({ roles, permissions }: { roles: RoleRow[]; p
                 </Form>
 
                 <div className="grid gap-4">
-                    {roles.map((role) => (
+                    {roles.data.map((role) => (
                         <div key={role.id} className="rounded-xl border p-4">
                             <div className="mb-3 flex items-center justify-between">
                                 <div>
@@ -46,11 +48,11 @@ export default function RolesIndex({ roles, permissions }: { roles: RoleRow[]; p
                                     <div className="text-muted-foreground text-xs">{role.users_count} users</div>
                                 </div>
                                 {!role.is_system && (
-                                    <Form action={`/roles/${role.id}`} method="delete">
-                                        <Button variant="ghost" size="sm" type="submit">
-                                            Delete
-                                        </Button>
-                                    </Form>
+                                    <DeleteConfirm
+                                        action={`/roles/${role.id}`}
+                                        title={`Delete ${role.name}?`}
+                                        description={`This cannot be undone. Users with this role will lose these permissions.`}
+                                    />
                                 )}
                             </div>
                             {role.name !== 'tenant-owner' ? (
@@ -78,6 +80,7 @@ export default function RolesIndex({ roles, permissions }: { roles: RoleRow[]; p
                         </div>
                     ))}
                 </div>
+                <Pagination paginator={roles} />
             </div>
         </>
     );

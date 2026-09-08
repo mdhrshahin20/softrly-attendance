@@ -21,13 +21,13 @@ class AttendanceReportController extends Controller
 {
     public function index(Request $request): Response|StreamedResponse
     {
-        abort_unless($request->user()?->can('attendance.view'), 403);
+        abort_unless($request->user()?->can('employee.view'), 403);
 
         $from = $request->date('from')?->toDateString() ?: now()->startOfMonth()->toDateString();
         $to = $request->date('to')?->toDateString() ?: now()->toDateString();
 
         $query = Attendance::query()
-            ->with(['employee.department', 'office'])
+            ->with(['employee.department', 'employee.user', 'office'])
             ->whereBetween('attendance_date', [$from, $to])
             ->when($request->integer('employee_id'), fn ($q, int $id) => $q->where('employee_id', $id))
             ->when($request->integer('department_id'), fn ($q, int $id) => $q->whereHas('employee', fn ($e) => $e->where('department_id', $id)))
@@ -46,7 +46,23 @@ class AttendanceReportController extends Controller
         $records = $query->paginate(25)->withQueryString();
 
         return Inertia::render('reports/attendance', [
-            'records' => $records,
+            'records' => $records->through(fn (Attendance $record): array => [
+                'id' => $record->id,
+                'attendance_date' => $record->attendance_date->toDateString(),
+                'status' => $record->status->value,
+                'check_in_at' => $record->check_in_at?->timezone(config('app.timezone'))->toIso8601String(),
+                'check_out_at' => $record->check_out_at?->timezone(config('app.timezone'))->toIso8601String(),
+                'late_minutes' => $record->late_minutes,
+                'work_minutes' => $record->work_minutes,
+                'employee' => $record->employee ? [
+                    'id' => $record->employee->id,
+                    'full_name' => $record->employee->full_name,
+                    'employee_code' => $record->employee->employee_code,
+                    'avatar' => $record->employee->avatar,
+                    'department' => $record->employee->department?->only(['name']),
+                ] : null,
+                'office' => $record->office?->only(['name']),
+            ]),
             'filters' => [
                 'from' => $from,
                 'to' => $to,
@@ -65,8 +81,8 @@ class AttendanceReportController extends Controller
             ]),
             'canExport' => app(SubscriptionService::class)
                 ->hasFeature(PlanFeature::Exports),
-            'canAdvanced' => app(SubscriptionService::class)
-                ->hasFeature(PlanFeature::AdvancedReports),
+            'canAdvanced' => ($request->user()?->can('employee.view') ?? false)
+                && app(SubscriptionService::class)->hasFeature(PlanFeature::AdvancedReports),
             'canManual' => $request->user()?->can('attendance.edit') ?? false,
         ]);
     }

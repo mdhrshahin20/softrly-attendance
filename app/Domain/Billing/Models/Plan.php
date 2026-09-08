@@ -26,6 +26,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Collection<int, PlanFeatureModel> $features
+ * @property-read int|null $subscriptions_count
+ * @property-read int $active_subscriptions_count
  */
 #[Fillable([
     'name',
@@ -116,6 +118,10 @@ class Plan extends Model
                 ->map(fn (string $key): string => PlanFeature::tryFrom($key)?->label() ?? $key)
                 ->values()
                 ->all(),
+            'is_public' => $this->is_public,
+            'is_active' => $this->is_active,
+            'sort_order' => $this->sort_order,
+            'subscriptions_count' => $this->subscriptions_count ?? $this->subscriptions()->count(),
         ];
     }
 

@@ -19,6 +19,7 @@ class AuditLogController extends Controller
         abort_unless(app(SubscriptionService::class)->hasFeature(PlanFeature::AuditLog), 403);
 
         $logs = ActivityLog::query()
+            ->with('user')
             ->where('tenant_id', Tenant::current()?->id)
             ->when($request->string('action')->toString(), fn ($query, string $action) => $query->where('action', 'like', '%'.$action.'%'))
             ->latest()
@@ -32,6 +33,11 @@ class AuditLogController extends Controller
                 'entity_type' => class_basename((string) $log->entity_type),
                 'entity_id' => $log->entity_id,
                 'user_id' => $log->user_id,
+                'user' => $log->user ? [
+                    'id' => $log->user->id,
+                    'name' => $log->user->name,
+                    'avatar' => $log->user->avatar,
+                ] : null,
                 'old_values' => $log->old_values,
                 'new_values' => $log->new_values,
                 'ip_address' => $log->ip_address,

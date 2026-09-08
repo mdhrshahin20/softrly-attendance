@@ -26,7 +26,7 @@ class DeviceController extends Controller
         }
 
         return Inertia::render('devices/index', [
-            'devices' => $query->get()->map(fn (UserDevice $device): array => [
+            'devices' => $query->paginate(20)->withQueryString()->through(fn (UserDevice $device): array => [
                 'id' => $device->id,
                 'device_name' => $device->device_name,
                 'browser' => $device->browser,
@@ -34,7 +34,12 @@ class DeviceController extends Controller
                 'last_ip' => $device->last_ip,
                 'last_seen_at' => $device->last_seen_at?->toDateTimeString(),
                 'trusted' => $device->trusted,
-                'user' => $device->user?->only(['id', 'name', 'email']),
+                'user' => $device->user ? [
+                    'id' => $device->user->id,
+                    'name' => $device->user->name,
+                    'email' => $device->user->email,
+                    'avatar' => $device->user->avatar,
+                ] : null,
                 'is_mine' => $device->user_id === $user->id,
             ]),
             'canManage' => $canManage,

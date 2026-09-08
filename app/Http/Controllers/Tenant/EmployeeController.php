@@ -35,7 +35,7 @@ class EmployeeController extends Controller
         $this->authorize('viewAny', Employee::class);
 
         $employees = Employee::query()
-            ->with(['department', 'designation', 'office', 'shift'])
+            ->with(['department', 'designation', 'office', 'shift', 'user'])
             ->when($request->string('search')->toString(), function ($query, string $search): void {
                 $query->where(function ($inner) use ($search): void {
                     $inner->where('first_name', 'like', "%{$search}%")
@@ -213,6 +213,7 @@ class EmployeeController extends Controller
             'first_name' => $employee->first_name,
             'last_name' => $employee->last_name,
             'full_name' => $employee->full_name,
+            'avatar' => $employee->avatar,
             'email' => $employee->email,
             'phone' => $employee->phone,
             'department_id' => $employee->department_id,

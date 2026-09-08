@@ -1,11 +1,14 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { PersonIdentity } from '@/components/person-identity';
+import { Pagination, type Paginated } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DatePicker } from '@/components/ui/date-picker';
 
 type EmployeeRow = {
     employee_id: number;
     name: string;
+    avatar?: string | null;
     code: string;
     department: string | null;
     office: string | null;
@@ -20,6 +23,7 @@ type EmployeeRow = {
 
 type LeaveRow = {
     employee: string | null;
+    avatar?: string | null;
     code: string | null;
     type: string | null;
     days: number;
@@ -32,7 +36,7 @@ type Props = {
         from: string;
         to: string;
         totals: Record<string, number>;
-        employees: EmployeeRow[];
+        employees: Paginated<EmployeeRow>;
         leave: LeaveRow[];
     };
     filters: { from: string; to: string; department_id: number | null; office_id: number | null };
@@ -80,8 +84,8 @@ export default function AdvancedReport({ report, filters, departments, offices, 
                         router.get('/reports/advanced', Object.fromEntries(new FormData(event.currentTarget)));
                     }}
                 >
-                    <Input type="date" name="from" defaultValue={filters.from} />
-                    <Input type="date" name="to" defaultValue={filters.to} />
+                    <DatePicker name="from" defaultValue={filters.from} placeholder="From" />
+                    <DatePicker name="to" defaultValue={filters.to} placeholder="To" />
                     <select name="department_id" defaultValue={filters.department_id ?? ''} className="border-input h-9 rounded-md border px-3 text-sm">
                         <option value="">All departments</option>
                         {departments.map((item) => (
@@ -116,11 +120,15 @@ export default function AdvancedReport({ report, filters, departments, offices, 
                             </tr>
                         </thead>
                         <tbody>
-                            {report.employees.map((row) => (
+                            {report.employees.data.map((row) => (
                                 <tr key={row.employee_id} className="border-t">
                                     <td className="px-4 py-3">
-                                        <div className="font-medium">{row.name}</div>
-                                        <div className="text-muted-foreground text-xs">{row.code} · {row.department ?? '—'}</div>
+                                        <PersonIdentity
+                                            name={row.name}
+                                            avatar={row.avatar}
+                                            detail={`${row.code} · ${row.department ?? '—'}`}
+                                            href={`/employees/${row.employee_id}`}
+                                        />
                                     </td>
                                     <td className="px-4 py-3">{row.present}</td>
                                     <td className="px-4 py-3">{row.late}</td>
@@ -133,6 +141,7 @@ export default function AdvancedReport({ report, filters, departments, offices, 
                         </tbody>
                     </table>
                 </div>
+                <Pagination paginator={report.employees} />
                 <div>
                     <h2 className="mb-2 text-lg font-medium">Leave usage</h2>
                     <div className="overflow-hidden rounded-xl border">
@@ -148,7 +157,13 @@ export default function AdvancedReport({ report, filters, departments, offices, 
                             <tbody>
                                 {report.leave.map((row, index) => (
                                     <tr key={`${row.code}-${index}`} className="border-t">
-                                        <td className="px-4 py-3">{row.employee}</td>
+                                        <td className="px-4 py-3">
+                                            <PersonIdentity
+                                                name={row.employee ?? 'Employee'}
+                                                avatar={row.avatar}
+                                                detail={row.code}
+                                            />
+                                        </td>
                                         <td className="px-4 py-3">{row.type}</td>
                                         <td className="px-4 py-3">{row.days}</td>
                                         <td className="px-4 py-3">{row.start_date} – {row.end_date}</td>

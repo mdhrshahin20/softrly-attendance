@@ -1,6 +1,7 @@
 import { Form, Head } from '@inertiajs/react';
 import { PageHeader } from '@/components/page-header';
 import { PageShell } from '@/components/page-shell';
+import { Pagination, type Paginated } from '@/components/pagination';
 import { StatusBadge } from '@/components/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,7 @@ type Props = {
         office_limit: number | null;
     };
     plans: Plan[];
-    payments: {
+    payments: Paginated<{
         id: number;
         amount: number;
         currency: string;
@@ -44,11 +45,20 @@ type Props = {
         status_label: string;
         notes: string | null;
         paid_at: string | null;
-    }[];
+    }>;
+    invoices: Paginated<{
+        id: number;
+        number: string;
+        amount: number;
+        status: string;
+        status_label: string;
+        issued_at: string | null;
+        sent_at: string | null;
+    }>;
     cycles: { value: string; label: string }[];
 };
 
-export default function BillingIndex({ subscription, plans, payments, cycles }: Props) {
+export default function BillingIndex({ subscription, plans, payments, invoices, cycles }: Props) {
     return (
         <>
             <Head title="Billing" />
@@ -114,11 +124,37 @@ export default function BillingIndex({ subscription, plans, payments, cycles }: 
                         </CardContent>
                     </Card>
                     <Card className="lg:col-span-2">
+                        <CardHeader><CardTitle>Invoices</CardTitle></CardHeader>
+                        <CardContent>
+                            {invoices.data.length === 0 && <p className="text-muted-foreground text-sm">No invoices yet.</p>}
+                            <div className="space-y-2 text-sm">
+                                {invoices.data.map((invoice) => (
+                                    <div key={invoice.id} className="flex items-center justify-between border-b py-2 last:border-0">
+                                        <div>
+                                            <div>{invoice.number} · ৳{invoice.amount.toLocaleString()}</div>
+                                            <div className="text-muted-foreground text-xs">{invoice.issued_at?.slice(0, 10)}</div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <StatusBadge status={invoice.status} label={invoice.status_label} withIcon={false} />
+                                            <Button asChild size="sm" variant="outline">
+                                                <a href={`/billing/invoices/${invoice.id}/download`}>Download</a>
+                                            </Button>
+                                            <Button asChild size="sm" variant="ghost">
+                                                <a href={`/billing/invoices/${invoice.id}/print`} target="_blank" rel="noreferrer">Print</a>
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <Pagination paginator={invoices} />
+                        </CardContent>
+                    </Card>
+                    <Card>
                         <CardHeader><CardTitle>Payment history</CardTitle></CardHeader>
                         <CardContent>
-                            {payments.length === 0 && <p className="text-muted-foreground text-sm">No payments yet.</p>}
+                            {payments.data.length === 0 && <p className="text-muted-foreground text-sm">No payments yet.</p>}
                             <div className="space-y-2 text-sm">
-                                {payments.map((payment) => (
+                                {payments.data.map((payment) => (
                                     <div key={payment.id} className="flex items-center justify-between border-b py-2 last:border-0">
                                         <div>
                                             <div>৳{payment.amount.toLocaleString()} · {payment.notes}</div>
@@ -128,6 +164,7 @@ export default function BillingIndex({ subscription, plans, payments, cycles }: 
                                     </div>
                                 ))}
                             </div>
+                            <Pagination paginator={payments} />
                         </CardContent>
                     </Card>
                 </div>

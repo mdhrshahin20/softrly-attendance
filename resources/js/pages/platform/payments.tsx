@@ -1,4 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
+import { Pagination, type Paginated } from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -16,7 +17,7 @@ type Payment = {
     created_at: string | null;
 };
 
-export default function PlatformPayments({ payments }: { payments: { data: Payment[] } }) {
+export default function PlatformPayments({ payments }: { payments: Paginated<Payment> }) {
     return (
         <>
             <Head title="Payments" />
@@ -61,6 +62,7 @@ export default function PlatformPayments({ payments }: { payments: { data: Payme
                         </tbody>
                     </table>
                 </div>
+                <Pagination paginator={payments} />
             </div>
         </>
     );

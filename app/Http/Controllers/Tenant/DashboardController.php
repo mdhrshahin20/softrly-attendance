@@ -33,7 +33,7 @@ class DashboardController extends Controller
         }
 
         $user = $request->user();
-        $employee = $user?->employee()?->with(['office', 'shift'])->first();
+        $employee = $user?->employee()?->with(['office', 'shift', 'user'])->first();
         $today = $employee ? $attendance->todayRecord($employee)?->load('office') : null;
         $network = $employee ? $networks->inspect($request, $employee) : null;
         $shift = $employee?->shift;
@@ -117,7 +117,7 @@ class DashboardController extends Controller
         if ($isHr) {
             $todayDate = now()->toDateString();
             $todayRecords = Attendance::query()
-                ->with(['employee.department', 'employee.office'])
+                ->with(['employee.department', 'employee.office', 'employee.user'])
                 ->whereDate('attendance_date', $todayDate)
                 ->get();
 
@@ -155,6 +155,7 @@ class DashboardController extends Controller
                 'id' => $employee->id,
                 'full_name' => $employee->full_name,
                 'employee_code' => $employee->employee_code,
+                'avatar' => $employee->avatar,
                 'office' => $employee->office?->only(['id', 'name', 'code']),
                 'shift' => $shift ? [
                     'name' => $shift->name,
@@ -197,6 +198,7 @@ class DashboardController extends Controller
      * @return list<array{
      *     id: int,
      *     full_name: string,
+     *     avatar: string|null,
      *     employee_code: string|null,
      *     department: string|null,
      *     office: string|null,
@@ -212,6 +214,7 @@ class DashboardController extends Controller
             ->map(fn (Attendance $record): array => [
                 'id' => $record->employee->id,
                 'full_name' => $record->employee->full_name,
+                'avatar' => $record->employee->avatar,
                 'employee_code' => $record->employee->employee_code,
                 'department' => $record->employee->department?->name,
                 'office' => $record->employee->office?->name,

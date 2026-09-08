@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Domain\Employee\Models\Department;
+use App\Domain\Tenant\Models\Tenant;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,7 +18,7 @@ class DepartmentController extends Controller
         $this->authorizeManage();
 
         return Inertia::render('departments/index', [
-            'departments' => Department::query()->withCount('employees')->orderBy('name')->get(),
+            'departments' => Department::query()->withCount('employees')->orderBy('name')->paginate(15)->withQueryString(),
         ]);
     }
 
@@ -24,13 +26,7 @@ class DepartmentController extends Controller
     {
         $this->authorizeManage();
 
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:100'],
-            'code' => ['required', 'string', 'max:30', 'unique:departments,code'],
-            'status' => ['required', 'in:active,inactive'],
-        ]);
-
-        Department::query()->create($data);
+        Department::query()->create($this->validatedDepartment($request));
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Department created.']);
 
@@ -41,13 +37,7 @@ class DepartmentController extends Controller
     {
         $this->authorizeManage();
 
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:100'],
-            'code' => ['required', 'string', 'max:30', 'unique:departments,code,'.$department->id],
-            'status' => ['required', 'in:active,inactive'],
-        ]);
-
-        $department->update($data);
+        $department->update($this->validatedDepartment($request, $department->id));
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Department updated.']);
 
@@ -58,6 +48,15 @@ class DepartmentController extends Controller
     {
         $this->authorizeManage();
 
+        if ($department->employees()->exists()) {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => 'Reassign employees before deleting this department.',
+            ]);
+
+            return back();
+        }
+
         $department->delete();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Department deleted.']);
@@ -65,13 +64,27 @@ class DepartmentController extends Controller
         return back();
     }
 
-    private function authorizeManage(): void
+    /**
+     * @return array{name: string, code: string, status: string}
+     */
+    private function validatedDepartment(Request $request, ?int $ignoreId = null): array
     {
-        abort_unless($this->userCan('department.manage'), 403);
+        return $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'code' => [
+                'required',
+                'string',
+                'max:30',
+                Rule::unique('departments', 'code')
+                    ->where('tenant_id', Tenant::current()?->id)
+                    ->ignore($ignoreId),
+            ],
+            'status' => ['required', 'in:active,inactive'],
+        ]);
     }
 
-    private function userCan(string $permission): bool
+    private function authorizeManage(): void
     {
-        return request()->user()?->can($permission) ?? false;
+        abort_unless(request()->user()?->can('department.manage'), 403);
     }
 }

@@ -1,4 +1,6 @@
 import { Form, Head } from '@inertiajs/react';
+import { DeleteConfirm } from '@/components/delete-confirm';
+import { Pagination, type Paginated } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -13,7 +15,7 @@ export default function ApiTokensIndex({
     tokens,
     plainToken,
 }: {
-    tokens: Token[];
+    tokens: Paginated<Token>;
     plainToken?: string | null;
 }) {
     return (
@@ -37,7 +39,7 @@ export default function ApiTokensIndex({
                     <Button type="submit">Create token</Button>
                 </Form>
                 <ul className="max-w-xl space-y-2">
-                    {tokens.map((token) => (
+                    {tokens.data.map((token) => (
                         <li key={token.id} className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
                             <div>
                                 <div className="font-medium">{token.name}</div>
@@ -45,14 +47,17 @@ export default function ApiTokensIndex({
                                     Created {token.created_at} · Last used {token.last_used_at ?? 'never'}
                                 </div>
                             </div>
-                            <Form action={`/settings/api-tokens/${token.id}`} method="delete">
-                                <Button size="sm" variant="ghost" type="submit">
-                                    Revoke
-                                </Button>
-                            </Form>
+                            <DeleteConfirm
+                                action={`/settings/api-tokens/${token.id}`}
+                                title={`Revoke ${token.name}?`}
+                                description="This token will stop working immediately. Apps using it will lose access."
+                                triggerLabel="Revoke"
+                                confirmLabel="Revoke"
+                            />
                         </li>
                     ))}
                 </ul>
+                <Pagination paginator={tokens} />
             </div>
         </>
     );

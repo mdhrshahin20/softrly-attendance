@@ -12,6 +12,7 @@ import { MetricCard } from '@/components/metric-card';
 import { NetworkStatus } from '@/components/network-status';
 import { PageHeader } from '@/components/page-header';
 import { PageShell } from '@/components/page-shell';
+import { PersonIdentity } from '@/components/person-identity';
 import { StatusBadge } from '@/components/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,7 @@ type TodayAttendance = {
 type TeamMember = {
     id: number;
     full_name: string;
+    avatar?: string | null;
     employee_code: string | null;
     department: string | null;
     office: string | null;
@@ -52,6 +54,7 @@ type Props = {
     employee: {
         id: number;
         full_name: string;
+        avatar?: string | null;
         employee_code: string;
         office: { id: number; name: string; code: string } | null;
         shift: {
@@ -132,16 +135,6 @@ function formatMinutes(minutes: number): string {
     return `${hours}h ${rest.toString().padStart(2, '0')}m`;
 }
 
-function initials(name: string): string {
-    return name
-        .split(' ')
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part[0])
-        .join('')
-        .toUpperCase();
-}
-
 function TeamMemberRow({
     person,
     detail,
@@ -153,13 +146,13 @@ function TeamMemberRow({
 }) {
     return (
         <div className="flex items-center gap-3 py-3">
-            <div className="bg-muted text-foreground flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
-                {initials(person.full_name)}
-            </div>
-            <div className="min-w-0 flex-1">
-                <div className="truncate font-medium">{person.full_name}</div>
-                <div className="text-muted-foreground truncate text-xs">{detail}</div>
-            </div>
+            <PersonIdentity
+                name={person.full_name}
+                avatar={person.avatar}
+                detail={detail}
+                href={`/employees/${person.id}`}
+                className="min-w-0 flex-1"
+            />
             {badge}
         </div>
     );
@@ -179,7 +172,7 @@ export default function Dashboard({
     pendingLeaveCount,
     attendancePolicy,
 }: Props) {
-    const { can } = usePage().props;
+    const { auth, can } = usePage().props;
     const deviceId = useDeviceId();
     const geo = useGeolocation(Boolean(attendancePolicy?.requires_location));
     const checkedIn = Boolean(today?.check_in_at && !today.check_out_at);
@@ -201,6 +194,14 @@ export default function Dashboard({
                             : employee?.shift
                               ? `${employee.office?.name ?? 'No office'} · ${employee.shift.start_time} – ${employee.shift.end_time}`
                               : 'Your attendance and leave at a glance.'
+                    }
+                    leading={
+                        <PersonIdentity
+                            name={employee?.full_name ?? auth.user.name}
+                            avatar={employee?.avatar ?? auth.user.avatar}
+                            size="lg"
+                            hideText
+                        />
                     }
                 />
 

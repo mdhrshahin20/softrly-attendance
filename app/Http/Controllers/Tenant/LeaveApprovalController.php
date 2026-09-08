@@ -35,9 +35,10 @@ class LeaveApprovalController extends Controller
         }
 
         return Inertia::render('leave/approvals', [
-            'requests' => $query->get()->map(fn (LeaveRequest $leave): array => [
+            'requests' => $query->paginate(20)->withQueryString()->through(fn (LeaveRequest $leave): array => [
                 'id' => $leave->id,
                 'employee' => $leave->employee?->full_name,
+                'avatar' => $leave->employee?->avatar,
                 'employee_code' => $leave->employee?->employee_code,
                 'department' => $leave->employee?->department?->name,
                 'leave_type' => $leave->leaveType?->name,
@@ -47,6 +48,7 @@ class LeaveApprovalController extends Controller
                 'duration_type' => $leave->duration_type->label(),
                 'reason' => $leave->reason,
                 'status' => $leave->status->value,
+                'attachment' => $leave->attachmentPayload(),
             ]),
         ]);
     }

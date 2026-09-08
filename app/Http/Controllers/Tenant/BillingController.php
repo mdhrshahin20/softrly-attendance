@@ -3,13 +3,17 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Domain\Billing\Enums\BillingCycle;
+use App\Domain\Billing\Models\Invoice;
+use App\Domain\Billing\Models\Payment;
 use App\Domain\Billing\Models\Plan;
+use App\Domain\Billing\Services\InvoiceService;
 use App\Domain\Billing\Services\PlanCatalog;
 use App\Domain\Billing\Services\SubscriptionService;
 use App\Domain\Tenant\Models\Tenant;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -18,6 +22,7 @@ class BillingController extends Controller
     public function __construct(
         private readonly SubscriptionService $subscriptions,
         private readonly PlanCatalog $plans,
+        private readonly InvoiceService $invoices,
     ) {}
 
     public function index(Request $request): Response
@@ -27,17 +32,27 @@ class BillingController extends Controller
         return Inertia::render('billing/index', [
             'subscription' => $this->subscriptions->snapshot(),
             'plans' => $this->plans->publicPlans()->map->toPublicArray()->values(),
-            'payments' => $this->subscriptions->payments()->map(fn ($payment): array => [
-                'id' => $payment->id,
-                'amount' => $payment->amount,
-                'currency' => $payment->currency,
-                'gateway' => $payment->gateway,
-                'status' => $payment->status->value,
-                'status_label' => $payment->status->label(),
-                'notes' => $payment->notes,
-                'paid_at' => $payment->paid_at?->toDateTimeString(),
-                'created_at' => $payment->created_at?->toDateTimeString(),
-            ]),
+            'payments' => Payment::query()
+                ->latest()
+                ->paginate(10, ['*'], 'payment_page')
+                ->withQueryString()
+                ->through(fn (Payment $payment): array => [
+                    'id' => $payment->id,
+                    'amount' => $payment->amount,
+                    'currency' => $payment->currency,
+                    'gateway' => $payment->gateway,
+                    'status' => $payment->status->value,
+                    'status_label' => $payment->status->label(),
+                    'notes' => $payment->notes,
+                    'paid_at' => $payment->paid_at?->toDateTimeString(),
+                    'created_at' => $payment->created_at?->toDateTimeString(),
+                ]),
+            'invoices' => Invoice::query()
+                ->with(['items', 'subscription.plan', 'payment'])
+                ->latest()
+                ->paginate(10, ['*'], 'invoice_page')
+                ->withQueryString()
+                ->through(fn (Invoice $invoice): array => $invoice->toAdminArray()),
             'cycles' => collect(BillingCycle::cases())->map(fn (BillingCycle $cycle): array => [
                 'value' => $cycle->value,
                 'label' => $cycle->label(),
@@ -65,9 +80,34 @@ class BillingController extends Controller
             $request->user(),
         );
 
+        if ($checkout = session()->pull('billing.checkout_url')) {
+            return redirect()->away($checkout);
+        }
+
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Plan updated.']);
 
         return back();
+    }
+
+    public function downloadInvoice(Request $request, Invoice $invoice): HttpResponse
+    {
+        abort_unless($request->user()?->can('settings.manage'), 403);
+        abort_unless($invoice->tenant_id === Tenant::current()?->id, 403);
+
+        $html = $this->invoices->printHtml($invoice);
+
+        return response($html, 200, [
+            'Content-Type' => 'text/html; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$invoice->number.'.html"',
+        ]);
+    }
+
+    public function printInvoice(Request $request, Invoice $invoice): HttpResponse
+    {
+        abort_unless($request->user()?->can('settings.manage'), 403);
+        abort_unless($invoice->tenant_id === Tenant::current()?->id, 403);
+
+        return response($this->invoices->printHtml($invoice));
     }
 
     public function cancel(Request $request): RedirectResponse

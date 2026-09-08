@@ -4,11 +4,18 @@ namespace App\Providers;
 
 use App\Domain\Attendance\Models\Attendance;
 use App\Domain\Billing\Contracts\PaymentGateway;
-use App\Domain\Billing\Gateways\ManualPaymentGateway;
+use App\Domain\Billing\Events\PaymentCompleted;
+use App\Domain\Billing\Events\SubscriptionExpired;
+use App\Domain\Billing\Events\SubscriptionStarted;
+use App\Domain\Billing\Listeners\HandlePaymentCompleted;
+use App\Domain\Billing\Listeners\HandleSubscriptionMail;
+use App\Domain\Billing\Services\PaymentGatewayManager;
 use App\Domain\Employee\Models\Employee;
 use App\Domain\Holiday\Models\Holiday;
 use App\Domain\Leave\Models\LeaveRequest;
 use App\Domain\Leave\Models\LeaveType;
+use App\Domain\Payroll\Models\Payslip;
+use App\Domain\Platform\Services\PlatformSettingsService;
 use App\Domain\Tenant\Services\AuditLogger;
 use App\Models\User;
 use App\Policies\AttendancePolicy;
@@ -16,6 +23,7 @@ use App\Policies\EmployeePolicy;
 use App\Policies\HolidayPolicy;
 use App\Policies\LeaveRequestPolicy;
 use App\Policies\LeaveTypePolicy;
+use App\Policies\PayrollPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Date;
@@ -32,7 +40,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(PaymentGateway::class, ManualPaymentGateway::class);
+        $this->app->singleton(PlatformSettingsService::class);
+        $this->app->singleton(PaymentGatewayManager::class);
+        $this->app->bind(PaymentGateway::class, fn ($app): PaymentGateway => $app->make(PaymentGatewayManager::class)->driver());
     }
 
     /**
@@ -47,6 +57,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(LeaveRequest::class, LeaveRequestPolicy::class);
         Gate::policy(LeaveType::class, LeaveTypePolicy::class);
         Gate::policy(Holiday::class, HolidayPolicy::class);
+        Gate::policy(Payslip::class, PayrollPolicy::class);
 
         Event::listen(Login::class, function (Login $event): void {
             $user = $event->user;
@@ -59,6 +70,10 @@ class AppServiceProvider extends ServiceProvider
                 'email' => $user->email,
             ], user: $user);
         });
+
+        Event::listen(PaymentCompleted::class, HandlePaymentCompleted::class);
+        Event::listen(SubscriptionStarted::class, [HandleSubscriptionMail::class, 'started']);
+        Event::listen(SubscriptionExpired::class, [HandleSubscriptionMail::class, 'expired']);
     }
 
     /**

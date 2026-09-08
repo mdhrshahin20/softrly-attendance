@@ -74,6 +74,24 @@ class LeaveRequest extends Model
         return $this->status === LeaveRequestStatus::Pending;
     }
 
+    /**
+     * @return array{name: string, url: string, is_image: bool}|null
+     */
+    public function attachmentPayload(): ?array
+    {
+        if (! is_string($this->attachment) || $this->attachment === '') {
+            return null;
+        }
+
+        $extension = strtolower(pathinfo($this->attachment, PATHINFO_EXTENSION));
+
+        return [
+            'name' => basename($this->attachment),
+            'url' => route('leave.attachment', $this),
+            'is_image' => in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true),
+        ];
+    }
+
     protected function casts(): array
     {
         return [

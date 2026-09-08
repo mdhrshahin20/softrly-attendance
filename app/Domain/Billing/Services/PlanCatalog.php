@@ -56,7 +56,7 @@ class PlanCatalog
             [
                 'name' => 'Professional',
                 'slug' => 'professional',
-                'description' => 'Advanced reports, custom roles, and room to grow.',
+                'description' => 'Advanced reports, salary payroll, custom roles, and room to grow.',
                 'employee_limit' => 200,
                 'office_limit' => null,
                 'monthly_price' => 9000,
@@ -74,6 +74,7 @@ class PlanCatalog
                     PlanFeature::MultipleOffices,
                     PlanFeature::CustomRoles,
                     PlanFeature::AuditLog,
+                    PlanFeature::Payroll,
                 ],
             ],
             [
@@ -94,23 +95,25 @@ class PlanCatalog
 
     public function seed(): void
     {
+        if (Plan::query()->exists()) {
+            return;
+        }
+
         foreach ($this->catalog() as $item) {
             /** @var list<PlanFeature> $features */
             $features = $item['features'];
             unset($item['features']);
 
-            $plan = Plan::query()->updateOrCreate(
-                ['slug' => $item['slug']],
-                [...$item, 'currency' => 'BDT', 'is_active' => true],
-            );
+            $plan = Plan::query()->create([
+                ...$item,
+                'currency' => 'BDT',
+                'is_active' => true,
+            ]);
 
-            $keys = collect($features)->map(fn (PlanFeature $feature): string => $feature->value)->all();
-            $plan->features()->whereNotIn('key', $keys)->delete();
-
-            foreach ($keys as $key) {
-                PlanFeatureModel::query()->firstOrCreate([
+            foreach ($features as $feature) {
+                PlanFeatureModel::query()->create([
                     'plan_id' => $plan->id,
-                    'key' => $key,
+                    'key' => $feature->value,
                 ]);
             }
         }
@@ -120,7 +123,8 @@ class PlanCatalog
     {
         $this->seed();
 
-        return Plan::query()->where('slug', 'starter')->firstOrFail();
+        return Plan::query()->where('slug', 'starter')->first()
+            ?? Plan::query()->where('is_active', true)->orderBy('sort_order')->firstOrFail();
     }
 
     /**

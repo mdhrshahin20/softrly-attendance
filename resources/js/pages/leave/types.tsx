@@ -1,4 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
+import { Pagination, type Paginated } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -13,7 +14,7 @@ type LeaveType = {
     status: string;
 };
 
-export default function LeaveTypes({ types }: { types: LeaveType[] }) {
+export default function LeaveTypes({ types }: { types: Paginated<LeaveType> }) {
     return (
         <>
             <Head title="Leave types" />
@@ -40,7 +41,7 @@ export default function LeaveTypes({ types }: { types: LeaveType[] }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {types.map((type) => (
+                            {types.data.map((type) => (
                                 <tr key={type.id} className="border-t">
                                     <td className="px-4 py-3">{type.name}</td>
                                     <td className="px-4 py-3">{type.code}</td>
@@ -52,6 +53,7 @@ export default function LeaveTypes({ types }: { types: LeaveType[] }) {
                         </tbody>
                     </table>
                 </div>
+                <Pagination paginator={types} />
             </div>
         </>
     );

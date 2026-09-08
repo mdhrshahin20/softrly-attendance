@@ -199,6 +199,9 @@ class TenantProvisioner
             'settings.manage',
             'role.manage',
             'audit.view',
+            'payroll.view',
+            'payroll.manage',
+            'payroll.payslip',
         ];
     }
 
@@ -220,6 +223,7 @@ class TenantProvisioner
             'leave.approve',
             'leave.reject',
             'holiday.view',
+            'payroll.view',
         ]);
         $employee->syncPermissions([
             'attendance.view',
@@ -227,6 +231,7 @@ class TenantProvisioner
             'leave.view',
             'leave.apply',
             'holiday.view',
+            'payroll.payslip',
         ]);
     }
 

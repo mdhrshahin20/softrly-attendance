@@ -5,11 +5,13 @@ export function PageHeader({
     title,
     description,
     actions,
+    leading,
     className,
 }: {
     title: string;
     description?: string;
     actions?: ReactNode;
+    leading?: ReactNode;
     className?: string;
 }) {
     return (
@@ -19,11 +21,14 @@ export function PageHeader({
                 className,
             )}
         >
-            <div className="min-w-0 space-y-1">
-                <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-                {description ? (
-                    <p className="text-muted-foreground max-w-2xl text-sm">{description}</p>
-                ) : null}
+            <div className="flex min-w-0 items-start gap-3">
+                {leading}
+                <div className="min-w-0 space-y-1">
+                    <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+                    {description ? (
+                        <p className="text-muted-foreground max-w-2xl text-sm">{description}</p>
+                    ) : null}
+                </div>
             </div>
             {actions ? (
                 <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>

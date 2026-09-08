@@ -20,6 +20,7 @@ class MeController extends Controller
                 'id' => $user?->id,
                 'name' => $user?->name,
                 'email' => $user?->email,
+                'avatar' => $user?->avatar,
             ],
             'tenant' => $tenant ? [
                 'id' => $tenant->id,
@@ -30,6 +31,7 @@ class MeController extends Controller
                 'id' => $employee->id,
                 'name' => $employee->full_name,
                 'code' => $employee->employee_code,
+                'avatar' => $user?->avatar,
             ] : null,
         ]);
     }

@@ -18,7 +18,7 @@ class LeaveTypeController extends Controller
         abort_unless($request->user()?->can('leave.manage'), 403);
 
         return Inertia::render('leave/types', [
-            'types' => LeaveType::query()->orderBy('name')->get(),
+            'types' => LeaveType::query()->orderBy('name')->paginate(15)->withQueryString(),
         ]);
     }
 

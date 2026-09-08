@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Domain\Employee\Models\Employee;
 use App\Domain\Leave\Services\LeaveBalanceService;
+use App\Domain\Payroll\Models\EmployeeSalary;
 use App\Domain\Shared\Enums\EmployeeStatus;
 use App\Domain\Shared\Enums\EmploymentType;
 use App\Domain\Tenant\Models\Tenant;
@@ -69,6 +70,29 @@ class DatabaseSeeder extends Seeder
         ]);
 
         app(LeaveBalanceService::class)->ensureForEmployee($amina);
+
+        EmployeeSalary::query()->create([
+            'employee_id' => $workspace['employee']->id,
+            'basic_salary' => 80000,
+            'house_rent' => 40000,
+            'medical' => 5000,
+            'other_allowance' => 5000,
+            'tax_percent' => 5,
+            'effective_from' => now()->startOfYear()->toDateString(),
+            'status' => 'active',
+        ]);
+
+        EmployeeSalary::query()->create([
+            'employee_id' => $amina->id,
+            'basic_salary' => 35000,
+            'house_rent' => 14000,
+            'medical' => 2000,
+            'other_allowance' => 1000,
+            'tax_percent' => 0,
+            'effective_from' => now()->startOfYear()->toDateString(),
+            'status' => 'active',
+        ]);
+
         Tenant::forgetCurrent();
     }
 }

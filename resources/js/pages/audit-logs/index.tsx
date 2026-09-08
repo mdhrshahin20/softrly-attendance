@@ -1,4 +1,6 @@
 import { Head, router } from '@inertiajs/react';
+import { Pagination, type Paginated } from '@/components/pagination';
+import { PersonIdentity } from '@/components/person-identity';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -8,18 +10,19 @@ type Log = {
     entity_type: string | null;
     entity_id: number | null;
     user_id: number | null;
+    user?: { id: number; name: string; avatar?: string | null } | null;
     new_values: Record<string, unknown> | null;
     ip_address: string | null;
     created_at: string | null;
 };
 
-type Paginated<T> = { data: T[] };
+type PaginatedLogs = Paginated<Log>;
 
 export default function AuditLogsIndex({
     logs,
     filters,
 }: {
-    logs: Paginated<Log>;
+    logs: PaginatedLogs;
     filters: { action: string | null };
 }) {
     return (
@@ -48,6 +51,7 @@ export default function AuditLogsIndex({
                         <thead className="bg-muted/50 text-left">
                             <tr>
                                 <th className="px-4 py-3">When</th>
+                                <th className="px-4 py-3">Actor</th>
                                 <th className="px-4 py-3">Action</th>
                                 <th className="px-4 py-3">Entity</th>
                                 <th className="px-4 py-3">IP</th>
@@ -58,6 +62,13 @@ export default function AuditLogsIndex({
                             {logs.data.map((log) => (
                                 <tr key={log.id} className="border-t align-top">
                                     <td className="px-4 py-3 whitespace-nowrap">{log.created_at}</td>
+                                    <td className="px-4 py-3">
+                                        {log.user ? (
+                                            <PersonIdentity name={log.user.name} avatar={log.user.avatar} />
+                                        ) : (
+                                            <span className="text-muted-foreground">System</span>
+                                        )}
+                                    </td>
                                     <td className="px-4 py-3 font-medium">{log.action}</td>
                                     <td className="px-4 py-3">
                                         {log.entity_type ?? '—'}
@@ -72,6 +83,7 @@ export default function AuditLogsIndex({
                         </tbody>
                     </table>
                 </div>
+                <Pagination paginator={logs} />
             </div>
         </>
     );

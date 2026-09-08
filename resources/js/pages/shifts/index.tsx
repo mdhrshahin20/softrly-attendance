@@ -1,11 +1,14 @@
 import { Form, Head } from '@inertiajs/react';
 import { useState } from 'react';
 import { DataTable } from '@/components/data-table';
+import { DeleteConfirm } from '@/components/delete-confirm';
 import { PageHeader } from '@/components/page-header';
 import { PageShell } from '@/components/page-shell';
+import { Pagination, type Paginated } from '@/components/pagination';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { TimePicker } from '@/components/ui/time-picker';
 
 type Shift = {
     id: number;
@@ -22,8 +25,8 @@ function ShiftFields({ shift }: { shift?: Shift }) {
     return (
         <>
             <Input name="name" defaultValue={shift?.name} placeholder="General Shift" required />
-            <Input name="start_time" type="time" defaultValue={shift?.start_time} required />
-            <Input name="end_time" type="time" defaultValue={shift?.end_time} required />
+            <TimePicker name="start_time" defaultValue={shift?.start_time} required placeholder="Start time" />
+            <TimePicker name="end_time" defaultValue={shift?.end_time} required placeholder="End time" />
             <Input
                 name="grace_minutes"
                 type="number"
@@ -55,7 +58,7 @@ function ShiftFields({ shift }: { shift?: Shift }) {
     );
 }
 
-export default function ShiftsIndex({ shifts }: { shifts: Shift[] }) {
+export default function ShiftsIndex({ shifts }: { shifts: Paginated<Shift> }) {
     const [editingId, setEditingId] = useState<number | null>(null);
 
     return (
@@ -87,7 +90,7 @@ export default function ShiftsIndex({ shifts }: { shifts: Shift[] }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {shifts.map((shift) =>
+                        {shifts.data.map((shift) =>
                             editingId === shift.id ? (
                                 <tr key={shift.id}>
                                     <td colSpan={7}>
@@ -133,24 +136,13 @@ export default function ShiftsIndex({ shifts }: { shifts: Shift[] }) {
                                             >
                                                 Edit
                                             </Button>
-                                            <Form action={`/shifts/${shift.id}`} method="delete">
-                                                {({ processing }) => (
-                                                    <Button
-                                                        type="submit"
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="text-destructive"
-                                                        disabled={processing || shift.employees_count > 0}
-                                                        title={
-                                                            shift.employees_count > 0
-                                                                ? 'Reassign employees before deleting'
-                                                                : 'Delete shift'
-                                                        }
-                                                    >
-                                                        Delete
-                                                    </Button>
-                                                )}
-                                            </Form>
+                                            <DeleteConfirm
+                                                action={`/shifts/${shift.id}`}
+                                                title={`Delete ${shift.name}?`}
+                                                description={`This cannot be undone. ${shift.name} will be permanently deleted.`}
+                                                disabled={shift.employees_count > 0}
+                                                disabledTitle="Reassign employees before deleting"
+                                            />
                                         </div>
                                     </td>
                                 </tr>
@@ -158,6 +150,7 @@ export default function ShiftsIndex({ shifts }: { shifts: Shift[] }) {
                         )}
                     </tbody>
                 </DataTable>
+                <Pagination paginator={shifts} />
             </PageShell>
         </>
     );

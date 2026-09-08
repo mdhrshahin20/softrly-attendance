@@ -1,11 +1,13 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, Link, usePage } from '@inertiajs/react';
 import { Palmtree } from 'lucide-react';
 import { DataTable } from '@/components/data-table';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { PageShell } from '@/components/page-shell';
+import { Pagination, type Paginated } from '@/components/pagination';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -20,10 +22,11 @@ type LeaveRequestRow = {
     status: string;
     status_label: string;
     can_cancel: boolean;
+    attachment: { name: string; url: string; is_image: boolean } | null;
 };
 
 type Props = {
-    requests: LeaveRequestRow[];
+    requests: Paginated<LeaveRequestRow>;
     balances: {
         id: number;
         leave_type: string | null;
@@ -46,6 +49,8 @@ const fieldClass =
     'border-input h-9 w-full rounded-md border bg-transparent px-3 text-sm outline-none';
 
 export default function LeaveIndex({ requests, balances, types, durationTypes }: Props) {
+    const { can } = usePage().props;
+
     return (
         <>
             <Head title="Leave" />
@@ -53,6 +58,13 @@ export default function LeaveIndex({ requests, balances, types, durationTypes }:
                 <PageHeader
                     title="Leave"
                     description="Check your balance, apply for time off, and track request status."
+                    actions={
+                        can?.viewLeaveApplications ? (
+                            <Button variant="outline" asChild>
+                                <Link href="/leave/applications">All applications</Link>
+                            </Button>
+                        ) : undefined
+                    }
                 />
 
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -117,14 +129,14 @@ export default function LeaveIndex({ requests, balances, types, durationTypes }:
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="start_date">From</Label>
-                                    <Input id="start_date" name="start_date" type="date" required />
+                                    <DatePicker id="start_date" name="start_date" required placeholder="From date" />
                                     {errors.start_date && (
                                         <p className="text-destructive text-sm">{errors.start_date}</p>
                                     )}
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="end_date">To</Label>
-                                    <Input id="end_date" name="end_date" type="date" required />
+                                    <DatePicker id="end_date" name="end_date" required placeholder="To date" />
                                     {errors.end_date && (
                                         <p className="text-destructive text-sm">{errors.end_date}</p>
                                     )}
@@ -159,7 +171,7 @@ export default function LeaveIndex({ requests, balances, types, durationTypes }:
                     </Form>
                 </div>
 
-                {requests.length === 0 ? (
+                {requests.data.length === 0 ? (
                     <div className="rounded-xl border">
                         <EmptyState
                             icon={Palmtree}
@@ -168,7 +180,8 @@ export default function LeaveIndex({ requests, balances, types, durationTypes }:
                         />
                     </div>
                 ) : (
-                    <DataTable>
+                    <>
+                        <DataTable>
                         <thead>
                             <tr>
                                 <th>Type</th>
@@ -179,7 +192,7 @@ export default function LeaveIndex({ requests, balances, types, durationTypes }:
                             </tr>
                         </thead>
                         <tbody>
-                            {requests.map((row) => (
+                            {requests.data.map((row) => (
                                 <tr key={row.id}>
                                     <td>{row.leave_type}</td>
                                     <td>
@@ -190,18 +203,25 @@ export default function LeaveIndex({ requests, balances, types, durationTypes }:
                                         <StatusBadge status={row.status} label={row.status_label} />
                                     </td>
                                     <td className="text-right">
-                                        {row.can_cancel && (
-                                            <Form action={`/leave/${row.id}/cancel`} method="post">
-                                                <Button type="submit" variant="ghost" size="sm">
-                                                    Cancel
-                                                </Button>
-                                            </Form>
-                                        )}
+                                        <div className="flex justify-end gap-2">
+                                            <Button variant="outline" size="sm" asChild>
+                                                <Link href={`/leave/${row.id}`}>View</Link>
+                                            </Button>
+                                            {row.can_cancel && (
+                                                <Form action={`/leave/${row.id}/cancel`} method="post">
+                                                    <Button type="submit" variant="ghost" size="sm">
+                                                        Cancel
+                                                    </Button>
+                                                </Form>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </DataTable>
+                    <Pagination paginator={requests} />
+                    </>
                 )}
             </PageShell>
         </>

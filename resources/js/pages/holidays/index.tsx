@@ -1,5 +1,8 @@
 import { Form, Head } from '@inertiajs/react';
+import { DeleteConfirm } from '@/components/delete-confirm';
+import { Pagination, type Paginated } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 
 type Holiday = {
@@ -14,7 +17,7 @@ type Holiday = {
 };
 
 type Props = {
-    holidays: Holiday[];
+    holidays: Paginated<Holiday>;
     offices: { id: number; name: string }[];
     departments: { id: number; name: string }[];
     types: { value: string; label: string }[];
@@ -30,8 +33,8 @@ export default function HolidaysIndex({ holidays, offices, departments, types, c
                 {canManage && (
                     <Form action="/holidays" method="post" className="grid max-w-5xl gap-2 md:grid-cols-7">
                         <Input name="name" placeholder="Victory Day" required />
-                        <Input name="date" type="date" required />
-                        <Input name="end_date" type="date" />
+                        <DatePicker name="date" required placeholder="Start date" />
+                        <DatePicker name="end_date" placeholder="End date" />
                         <select name="holiday_type" className="border-input h-9 rounded-md border bg-transparent px-3 text-sm" defaultValue="public">
                             {types.map((type) => (
                                 <option key={type.value} value={type.value}>{type.label}</option>
@@ -65,7 +68,7 @@ export default function HolidaysIndex({ holidays, offices, departments, types, c
                             </tr>
                         </thead>
                         <tbody>
-                            {holidays.map((holiday) => (
+                            {holidays.data.map((holiday) => (
                                 <tr key={holiday.id} className="border-t">
                                     <td className="px-4 py-3">{holiday.name}</td>
                                     <td className="px-4 py-3">
@@ -75,9 +78,11 @@ export default function HolidaysIndex({ holidays, offices, departments, types, c
                                     <td className="px-4 py-3">{holiday.office ?? holiday.department ?? 'All company'}</td>
                                     {canManage && (
                                         <td className="px-4 py-3 text-right">
-                                            <Form action={`/holidays/${holiday.id}`} method="delete">
-                                                <Button type="submit" variant="ghost" size="sm">Delete</Button>
-                                            </Form>
+                                            <DeleteConfirm
+                                                action={`/holidays/${holiday.id}`}
+                                                title={`Delete ${holiday.name}?`}
+                                                description={`This cannot be undone. ${holiday.name} will be permanently deleted.`}
+                                            />
                                         </td>
                                     )}
                                 </tr>
@@ -85,6 +90,7 @@ export default function HolidaysIndex({ holidays, offices, departments, types, c
                         </tbody>
                     </table>
                 </div>
+                <Pagination paginator={holidays} />
             </div>
         </>
     );

@@ -14,6 +14,7 @@ use App\Models\User;
 use Database\Factories\EmployeeFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -40,6 +41,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read string $full_name
+ * @property-read string|null $avatar
  * @property-read User|null $user
  * @property-read Department|null $department
  * @property-read Designation|null $designation
@@ -71,7 +73,7 @@ class Employee extends Model
     /**
      * @var list<string>
      */
-    protected $appends = ['full_name'];
+    protected $appends = ['full_name', 'avatar'];
 
     protected static function newFactory(): EmployeeFactory
     {
@@ -81,6 +83,14 @@ class Employee extends Model
     public function getFullNameAttribute(): string
     {
         return trim($this->first_name.' '.$this->last_name);
+    }
+
+    /**
+     * @return Attribute<string|null, never>
+     */
+    protected function avatar(): Attribute
+    {
+        return Attribute::get(fn (): ?string => $this->user?->avatar);
     }
 
     /**

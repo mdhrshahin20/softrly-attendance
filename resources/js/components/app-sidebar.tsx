@@ -1,5 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
+    Banknote,
+    BarChart3,
     Bell,
     Building2,
     CalendarDays,
@@ -15,16 +17,16 @@ import {
     Layers3,
     LayoutGrid,
     MapPin,
+    Megaphone,
     Network,
     Palmtree,
+    Plug,
     Receipt,
     ScrollText,
     Shield,
-    UserRound,
     Users,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -115,6 +117,11 @@ export function AppSidebar() {
             : null,
         !isPlatform
             ? navGroup('Leave', [
+                  can?.viewLeaveApplications && {
+                      title: 'Applications',
+                      href: '/leave/applications',
+                      icon: ClipboardList,
+                  },
                   can?.approveLeave && {
                       title: 'Approvals',
                       href: '/leave/approvals',
@@ -123,7 +130,7 @@ export function AppSidebar() {
                   can?.manageLeave && {
                       title: 'Leave types',
                       href: '/leave/types',
-                      icon: ClipboardList,
+                      icon: Palmtree,
                   },
               ])
             : null,
@@ -148,6 +155,35 @@ export function AppSidebar() {
                       title: 'Attendance mode',
                       href: '/settings/attendance',
                       icon: MapPin,
+                  },
+              ])
+            : null,
+        !isPlatform
+            ? navGroup('Payroll', [
+                  can?.managePayroll && {
+                      title: 'Salaries',
+                      href: '/payroll/salaries',
+                      icon: Banknote,
+                  },
+                  can?.viewPayroll && {
+                      title: 'Payroll runs',
+                      href: '/payroll/runs',
+                      icon: FileSpreadsheet,
+                  },
+                  can?.viewPayroll && {
+                      title: 'Advances',
+                      href: '/payroll/advances',
+                      icon: Receipt,
+                  },
+                  can?.viewPayroll && {
+                      title: 'Salary report',
+                      href: '/reports/salary',
+                      icon: FileSpreadsheet,
+                  },
+                  can?.viewPayslips && {
+                      title: 'My payslips',
+                      href: '/payroll/me',
+                      icon: CreditCard,
                   },
               ])
             : null,
@@ -211,18 +247,42 @@ export function AppSidebar() {
                       icon: ClipboardList,
                   },
                   {
+                      title: 'Invoices',
+                      href: '/platform/invoices',
+                      icon: Receipt,
+                  },
+                  {
                       title: 'Payments',
                       href: '/platform/payments',
-                      icon: Receipt,
+                      icon: CreditCard,
                   },
               ])
             : null,
         isPlatform
             ? navGroup('Growth', [
                   {
+                      title: 'Reports',
+                      href: '/platform/reports',
+                      icon: BarChart3,
+                  },
+                  {
                       title: 'Leads',
                       href: '/platform/leads',
                       icon: Inbox,
+                  },
+                  {
+                      title: 'Marketing',
+                      href: '/platform/marketing',
+                      icon: Megaphone,
+                  },
+              ])
+            : null,
+        isPlatform
+            ? navGroup('Integrations', [
+                  {
+                      title: 'Gateways',
+                      href: '/platform/gateways',
+                      icon: Plug,
                   },
               ])
             : null,
@@ -247,16 +307,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter
-                    items={[
-                        {
-                            title: 'Profile',
-                            href: '/settings/profile',
-                            icon: UserRound,
-                        },
-                    ]}
-                    className="mt-auto"
-                />
                 <NavUser />
             </SidebarFooter>
             <SidebarRail />

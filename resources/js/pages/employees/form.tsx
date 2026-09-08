@@ -3,7 +3,9 @@ import type { ReactNode } from 'react';
 import InputError from '@/components/input-error';
 import { PageHeader } from '@/components/page-header';
 import { PageShell } from '@/components/page-shell';
+import { PersonIdentity } from '@/components/person-identity';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
@@ -15,6 +17,8 @@ type Employee = {
     employee_code: string;
     first_name: string;
     last_name: string | null;
+    full_name?: string;
+    avatar?: string | null;
     email: string;
     phone: string | null;
     department_id: number | null;
@@ -63,6 +67,16 @@ export default function EmployeeForm({
                 <PageHeader
                     title={employee ? 'Edit employee' : 'Add employee'}
                     description="An invitation-ready login is created with the employee record."
+                    leading={
+                        employee ? (
+                            <PersonIdentity
+                                name={employee.full_name ?? `${employee.first_name} ${employee.last_name ?? ''}`.trim()}
+                                avatar={employee.avatar}
+                                size="lg"
+                                hideText
+                            />
+                        ) : undefined
+                    }
                     actions={
                         <div className="flex gap-2">
                             {employee ? (
@@ -101,7 +115,7 @@ export default function EmployeeForm({
                                     <Input name="phone" defaultValue={employee?.phone ?? ''} />
                                 </Field>
                                 <Field label="Joining date" error={errors.joining_date}>
-                                    <Input type="date" name="joining_date" defaultValue={employee?.joining_date ?? ''} />
+                                    <DatePicker name="joining_date" defaultValue={employee?.joining_date ?? ''} placeholder="Joining date" />
                                 </Field>
                                 <Field label="Department" error={errors.department_id}>
                                     <select name="department_id" defaultValue={employee?.department_id ?? ''} className={fieldClass}>

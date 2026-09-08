@@ -30,13 +30,22 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $user->fill($request->safe()->only(['name', 'email']));
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        $request->user()->save();
+        if ($request->hasFile('avatar')) {
+            $user->deleteAvatarFile();
+            $user->avatar_path = $request->file('avatar')->store('avatars', 'public');
+        } elseif ($request->boolean('remove_avatar') && $user->avatar_path) {
+            $user->deleteAvatarFile();
+            $user->avatar_path = null;
+        }
+
+        $user->save();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated.')]);
 

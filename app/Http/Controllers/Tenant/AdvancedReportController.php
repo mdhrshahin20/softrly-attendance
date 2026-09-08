@@ -9,6 +9,7 @@ use App\Domain\Employee\Models\Department;
 use App\Domain\Office\Models\Office;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -17,7 +18,7 @@ class AdvancedReportController extends Controller
 {
     public function index(Request $request, AdvancedReportService $reports): Response|StreamedResponse
     {
-        abort_unless($request->user()?->can('attendance.view') || $request->user()?->can('attendance.export'), 403);
+        abort_unless($request->user()?->can('employee.view'), 403);
         abort_unless(app(SubscriptionService::class)->hasFeature(PlanFeature::AdvancedReports), 403);
 
         $from = $request->date('from')?->toDateString() ?: now()->startOfMonth()->toDateString();
@@ -33,6 +34,17 @@ class AdvancedReportController extends Controller
 
             return $this->csv($report);
         }
+
+        $employeeRows = collect($report['employees']);
+        $page = max(1, $request->integer('page', 1));
+        $perPage = 25;
+        $report['employees'] = new LengthAwarePaginator(
+            $employeeRows->forPage($page, $perPage)->values(),
+            $employeeRows->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()],
+        );
 
         return Inertia::render('reports/advanced', [
             'report' => $report,

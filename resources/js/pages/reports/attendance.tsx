@@ -1,9 +1,13 @@
 import { Form, Head, Link, router } from '@inertiajs/react';
 import { PageHeader } from '@/components/page-header';
 import { PageShell } from '@/components/page-shell';
+import { Pagination, type Paginated } from '@/components/pagination';
+import { PersonIdentity } from '@/components/person-identity';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
+import { TimePicker } from '@/components/ui/time-picker';
 
 type RecordRow = {
     id: number;
@@ -14,17 +18,19 @@ type RecordRow = {
     late_minutes: number;
     work_minutes: number;
     employee: {
+        id?: number;
         full_name?: string;
         first_name?: string;
         last_name?: string;
         employee_code: string;
+        avatar?: string | null;
         department?: { name: string } | null;
     } | null;
     office: { name: string } | null;
 };
 
 type Props = {
-    records: { data: RecordRow[] };
+    records: Paginated<RecordRow>;
     filters: {
         from: string;
         to: string;
@@ -89,8 +95,8 @@ export default function AttendanceReport({ records, filters, employees, departme
                         router.get('/reports/attendance', Object.fromEntries(data));
                     }}
                 >
-                    <Input type="date" name="from" defaultValue={filters.from} />
-                    <Input type="date" name="to" defaultValue={filters.to} />
+                    <DatePicker name="from" defaultValue={filters.from} placeholder="From" />
+                    <DatePicker name="to" defaultValue={filters.to} placeholder="To" />
                     <select name="employee_id" defaultValue={filters.employee_id ?? ''} className="border-input h-9 rounded-md border px-3 text-sm">
                         <option value="">All employees</option>
                         {employees.map((employee) => (
@@ -140,7 +146,16 @@ export default function AttendanceReport({ records, filters, employees, departme
                                 <tr key={record.id} className="border-t">
                                     <td className="px-4 py-3">{String(record.attendance_date).slice(0, 10)}</td>
                                     <td className="px-4 py-3">
-                                        {record.employee?.full_name ?? `${record.employee?.first_name ?? ''} ${record.employee?.last_name ?? ''}`}
+                                        <PersonIdentity
+                                            name={record.employee?.full_name || 'Employee'}
+                                            avatar={record.employee?.avatar}
+                                            detail={record.employee?.employee_code}
+                                            href={
+                                                record.employee?.id
+                                                    ? `/employees/${record.employee.id}`
+                                                    : undefined
+                                            }
+                                        />
                                     </td>
                                     <td className="px-4 py-3">{record.office?.name ?? '—'}</td>
                                     <td className="px-4 py-3">
@@ -154,6 +169,7 @@ export default function AttendanceReport({ records, filters, employees, departme
                         </tbody>
                     </table>
                 </div>
+                <Pagination paginator={records} />
 
                 {canManual && (
                     <Form action="/attendance/manual" method="post" className="grid max-w-4xl gap-2 rounded-xl border p-4 sm:grid-cols-6">
@@ -166,9 +182,9 @@ export default function AttendanceReport({ records, filters, employees, departme
                                 </option>
                             ))}
                         </select>
-                        <Input type="date" name="attendance_date" required />
-                        <Input type="time" name="check_in_at" />
-                        <Input type="time" name="check_out_at" />
+                        <DatePicker name="attendance_date" required placeholder="Date" />
+                        <TimePicker name="check_in_at" placeholder="Check in" />
+                        <TimePicker name="check_out_at" placeholder="Check out" />
                         <Input name="reason" placeholder="Reason" required className="sm:col-span-2" />
                         <Button type="submit" className="sm:col-span-6">Save adjustment</Button>
                     </Form>

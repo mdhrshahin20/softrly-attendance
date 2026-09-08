@@ -2,7 +2,6 @@
 
 namespace App\Domain\Billing\Services;
 
-use App\Domain\Billing\Contracts\PaymentGateway;
 use App\Domain\Billing\Enums\BillingCycle;
 use App\Domain\Billing\Enums\PaymentStatus;
 use App\Domain\Billing\Enums\PlanFeature;
@@ -10,6 +9,7 @@ use App\Domain\Billing\Enums\SubscriptionStatus;
 use App\Domain\Billing\Events\PaymentCompleted;
 use App\Domain\Billing\Events\SubscriptionExpired;
 use App\Domain\Billing\Events\SubscriptionStarted;
+use App\Domain\Billing\Listeners\HandleSubscriptionMail;
 use App\Domain\Billing\Models\Payment;
 use App\Domain\Billing\Models\Plan;
 use App\Domain\Billing\Models\Subscription;
@@ -27,7 +27,7 @@ class SubscriptionService
 {
     public function __construct(
         private readonly PlanCatalog $plans,
-        private readonly PaymentGateway $gateway,
+        private readonly PaymentGatewayManager $gateways,
     ) {}
 
     public function current(?Tenant $tenant = null): ?Subscription
@@ -93,7 +93,7 @@ class SubscriptionService
         return $subscription;
     }
 
-    public function subscribe(Tenant $tenant, Plan $plan, BillingCycle $cycle, ?User $actor = null, bool $chargeNow = true): Subscription
+    public function subscribe(Tenant $tenant, Plan $plan, BillingCycle $cycle, ?User $actor = null, bool $chargeNow = true, ?string $gateway = null): Subscription
     {
         if (! $plan->is_active) {
             throw ValidationException::withMessages(['plan_id' => 'This plan is not available.']);
@@ -121,15 +121,27 @@ class SubscriptionService
             return $subscription->fresh(['plan.features']) ?? $subscription;
         }
 
+        $driver = $this->gateways->driver($gateway);
+
         $payment = Payment::query()->create([
             'tenant_id' => $tenant->id,
             'subscription_id' => $subscription->id,
             'amount' => $amount,
             'currency' => $plan->currency,
-            'gateway' => $this->gateway->name(),
+            'gateway' => $driver->name(),
             'status' => PaymentStatus::Pending,
             'notes' => $plan->name.' · '.$cycle->label(),
         ]);
+
+        if ($chargeNow && $driver->requiresRedirect()) {
+            $checkoutUrl = $driver->checkoutUrl($payment);
+
+            if (filled($checkoutUrl)) {
+                session(['billing.checkout_url' => $checkoutUrl]);
+
+                return $subscription->fresh(['plan.features']) ?? $subscription;
+            }
+        }
 
         if ($chargeNow) {
             $this->completePayment($payment, $actor);
@@ -144,7 +156,13 @@ class SubscriptionService
             return $payment;
         }
 
-        $charged = $this->gateway->charge($payment);
+        try {
+            $driver = $this->gateways->driver($payment->gateway ?: $this->gateways->defaultDriver());
+        } catch (\InvalidArgumentException) {
+            $driver = $this->gateways->driver('manual');
+        }
+
+        $charged = $driver->charge($payment);
         $subscription = $charged->subscription;
 
         if ($subscription) {
@@ -175,6 +193,7 @@ class SubscriptionService
 
         $tenant->update(['status' => TenantStatus::Cancelled]);
         $this->log($tenant, $actor, 'subscription.cancelled', $subscription);
+        app(HandleSubscriptionMail::class)->cancelled($subscription->fresh(['tenant.users', 'plan']) ?? $subscription);
 
         return $subscription->fresh(['plan']) ?? $subscription;
     }

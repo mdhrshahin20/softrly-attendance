@@ -14,9 +14,15 @@ class LeaveRequestPolicy
 
     public function view(User $user, LeaveRequest $leaveRequest): bool
     {
-        return $user->can('leave.view')
-            || $user->employee?->id === $leaveRequest->employee_id
-            || $this->manages($user, $leaveRequest);
+        if ($user->employee?->id === $leaveRequest->employee_id) {
+            return true;
+        }
+
+        if ($user->can('leave.manage') || $user->can('employee.view')) {
+            return $user->can('leave.approve') || $user->can('leave.view');
+        }
+
+        return $this->manages($user, $leaveRequest);
     }
 
     public function create(User $user): bool

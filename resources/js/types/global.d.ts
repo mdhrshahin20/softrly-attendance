@@ -23,6 +23,7 @@ declare module '@inertiajs/core' {
                 id: number;
                 full_name: string;
                 employee_code: string;
+                avatar?: string | null;
             } | null;
             can?: Record<string, boolean>;
             [key: string]: unknown;

@@ -35,8 +35,9 @@ class RoleController extends Controller
                 ->with('permissions')
                 ->where('tenant_id', $tenant?->id)
                 ->orderBy('name')
-                ->get()
-                ->map(fn (Role $role): array => [
+                ->paginate(15)
+                ->withQueryString()
+                ->through(fn (Role $role): array => [
                     'id' => $role->id,
                     'name' => $role->name,
                     'is_system' => in_array($role->name, $this->systemRoles, true),

@@ -19,8 +19,9 @@ class ShiftController extends Controller
             'shifts' => Shift::query()
                 ->withCount('employees')
                 ->orderBy('start_time')
-                ->get()
-                ->map(fn (Shift $shift): array => [
+                ->paginate(15)
+                ->withQueryString()
+                ->through(fn (Shift $shift): array => [
                     'id' => $shift->id,
                     'name' => $shift->name,
                     'start_time' => substr((string) $shift->start_time, 0, 5),

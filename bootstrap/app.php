@@ -31,7 +31,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'device_uuid']);
 
-        $middleware->trustProxies(at: '*');
+        $middleware->validateCsrfTokens(except: [
+            'billing/gateways/*',
+        ]);
 
         $middleware->web(append: [
             SetCurrentTenant::class,

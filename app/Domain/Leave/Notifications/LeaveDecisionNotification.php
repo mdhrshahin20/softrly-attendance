@@ -4,7 +4,9 @@ namespace App\Domain\Leave\Notifications;
 
 use App\Domain\Leave\Models\LeaveRequest;
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\URL;
 
 class LeaveDecisionNotification extends Notification
 {
@@ -21,7 +23,18 @@ class LeaveDecisionNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        $data = $this->toArray($notifiable);
+
+        return (new MailMessage)
+            ->subject($data['title'])
+            ->line($data['message'])
+            ->line($this->comment ? 'Comment: '.$this->comment : '')
+            ->action('View leave', URL::to($data['url']));
     }
 
     /**
@@ -29,7 +42,7 @@ class LeaveDecisionNotification extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        $type = $this->leaveRequest->leaveType?->name ?? 'leave';
+        $type = $this->leaveRequest->leaveType->name;
 
         return [
             'title' => 'Leave '.$this->decision,

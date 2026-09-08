@@ -22,8 +22,9 @@ class HolidayController extends Controller
             'holidays' => Holiday::query()
                 ->with(['office', 'department'])
                 ->orderBy('date')
-                ->get()
-                ->map(fn (Holiday $holiday): array => [
+                ->paginate(20)
+                ->withQueryString()
+                ->through(fn (Holiday $holiday): array => [
                     'id' => $holiday->id,
                     'name' => $holiday->name,
                     'date' => $holiday->date->toDateString(),

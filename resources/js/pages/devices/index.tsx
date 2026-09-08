@@ -1,4 +1,7 @@
 import { Form, Head } from '@inertiajs/react';
+import { DeleteConfirm } from '@/components/delete-confirm';
+import { Pagination, type Paginated } from '@/components/pagination';
+import { PersonIdentity } from '@/components/person-identity';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -10,11 +13,11 @@ type Device = {
     last_ip: string | null;
     last_seen_at: string | null;
     trusted: boolean;
-    user: { id: number; name: string; email: string } | null;
+    user: { id: number; name: string; email: string; avatar?: string | null } | null;
     is_mine: boolean;
 };
 
-export default function DevicesIndex({ devices, canManage }: { devices: Device[]; canManage: boolean }) {
+export default function DevicesIndex({ devices, canManage }: { devices: Paginated<Device>; canManage: boolean }) {
     return (
         <>
             <Head title="Trusted devices" />
@@ -37,7 +40,7 @@ export default function DevicesIndex({ devices, canManage }: { devices: Device[]
                             </tr>
                         </thead>
                         <tbody>
-                            {devices.map((device) => (
+                            {devices.data.map((device) => (
                                 <tr key={device.id} className="border-t">
                                     <td className="px-4 py-3">
                                         <div className="font-medium">{device.device_name ?? 'Unknown device'}</div>
@@ -46,7 +49,17 @@ export default function DevicesIndex({ devices, canManage }: { devices: Device[]
                                         </div>
                                     </td>
                                     {canManage && (
-                                        <td className="px-4 py-3">{device.user?.name ?? '—'}</td>
+                                        <td className="px-4 py-3">
+                                            {device.user ? (
+                                                <PersonIdentity
+                                                    name={device.user.name}
+                                                    avatar={device.user.avatar}
+                                                    detail={device.user.email}
+                                                />
+                                            ) : (
+                                                '—'
+                                            )}
+                                        </td>
                                     )}
                                     <td className="px-4 py-3">{device.last_seen_at ?? '—'}</td>
                                     <td className="px-4 py-3">
@@ -66,16 +79,18 @@ export default function DevicesIndex({ devices, canManage }: { devices: Device[]
                                                     </Button>
                                                 </Form>
                                             )}
-                                            <Form action={`/devices/${device.id}`} method="delete">
-                                                <Button size="sm" variant="ghost" type="submit">
-                                                    Remove
-                                                </Button>
-                                            </Form>
+                                            <DeleteConfirm
+                                                action={`/devices/${device.id}`}
+                                                title={`Remove ${device.device_name ?? 'this device'}?`}
+                                                description="This device will no longer be trusted for attendance until it checks in again."
+                                                triggerLabel="Remove"
+                                                confirmLabel="Remove"
+                                            />
                                         </div>
                                     </td>
                                 </tr>
                             ))}
-                            {devices.length === 0 && (
+                            {devices.data.length === 0 && (
                                 <tr>
                                     <td className="text-muted-foreground px-4 py-8" colSpan={5}>
                                         No devices captured yet. Check in once to register this browser.
@@ -85,6 +100,7 @@ export default function DevicesIndex({ devices, canManage }: { devices: Device[]
                         </tbody>
                     </table>
                 </div>
+                <Pagination paginator={devices} />
             </div>
         </>
     );

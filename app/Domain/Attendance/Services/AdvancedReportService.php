@@ -33,7 +33,7 @@ class AdvancedReportService
         $end = CarbonImmutable::parse($to)->startOfDay();
 
         $employees = Employee::query()
-            ->with(['department', 'office', 'shift'])
+            ->with(['department', 'office', 'shift', 'user'])
             ->active()
             ->when($departmentId, fn ($query, int $id) => $query->where('department_id', $id))
             ->when($officeId, fn ($query, int $id) => $query->where('office_id', $id))
@@ -78,7 +78,7 @@ class AdvancedReportService
         }
 
         $leaveRows = LeaveRequest::query()
-            ->with(['employee', 'leaveType'])
+            ->with(['employee.user', 'leaveType'])
             ->where('status', LeaveRequestStatus::Approved)
             ->whereDate('start_date', '<=', $end->toDateString())
             ->whereDate('end_date', '>=', $start->toDateString())
@@ -87,6 +87,7 @@ class AdvancedReportService
             ->get()
             ->map(fn (LeaveRequest $request): array => [
                 'employee' => $request->employee?->full_name,
+                'avatar' => $request->employee?->avatar,
                 'code' => $request->employee?->employee_code,
                 'type' => $request->leaveType?->name,
                 'days' => $request->total_days,
@@ -156,6 +157,7 @@ class AdvancedReportService
         return [
             'employee_id' => $employee->id,
             'name' => $employee->full_name,
+            'avatar' => $employee->avatar,
             'code' => $employee->employee_code,
             'department' => $employee->department?->name,
             'office' => $employee->office?->name,

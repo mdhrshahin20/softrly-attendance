@@ -24,13 +24,19 @@ class DomainController extends Controller
         $tenant = Tenant::current();
 
         return Inertia::render('settings/domains', [
-            'domains' => $tenant?->domains()->orderByDesc('is_primary')->get()->map(fn (TenantDomain $domain): array => [
-                'id' => $domain->id,
-                'hostname' => $domain->hostname,
-                'type' => $domain->type,
-                'is_primary' => $domain->is_primary,
-                'status' => $domain->status,
-            ]),
+            'domains' => $tenant
+                ? $tenant->domains()
+                    ->orderByDesc('is_primary')
+                    ->paginate(15)
+                    ->withQueryString()
+                    ->through(fn (TenantDomain $domain): array => [
+                        'id' => $domain->id,
+                        'hostname' => $domain->hostname,
+                        'type' => $domain->type,
+                        'is_primary' => $domain->is_primary,
+                        'status' => $domain->status,
+                    ])
+                : ['data' => [], 'links' => []],
         ]);
     }
 

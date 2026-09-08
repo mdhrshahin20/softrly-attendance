@@ -1,4 +1,5 @@
 import { Head, router } from '@inertiajs/react';
+import { Pagination, type Paginated } from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +19,7 @@ type Lead = {
 };
 
 type Props = {
-    leads: { data: Lead[] };
+    leads: Paginated<Lead>;
     filters: { search: string | null };
     stats: { total: number; converted: number };
 };
@@ -78,6 +79,7 @@ export default function PlatformLeads({ leads, filters, stats }: Props) {
                         </tbody>
                     </table>
                 </div>
+                <Pagination paginator={leads} />
             </div>
         </>
     );

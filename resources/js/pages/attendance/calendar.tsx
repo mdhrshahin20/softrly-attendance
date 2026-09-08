@@ -1,8 +1,10 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { AttendanceLegend, AttendanceMonthGrid } from '@/components/attendance-month-grid';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import { PageHeader } from '@/components/page-header';
 import { PageShell } from '@/components/page-shell';
+import { parseISODate, toISODate } from '@/lib/datetime';
 
 type Day = {
     date: string;
@@ -43,6 +45,23 @@ export default function AttendanceCalendar({ month, year, days, legend }: Props)
                     description="Green is on time, amber is late, blue is leave, red is absent."
                     actions={
                         <>
+                            <div className="w-44">
+                                <DatePicker
+                                    value={toISODate(first)}
+                                    onChange={(iso) => {
+                                        const date = parseISODate(iso);
+
+                                        if (!date) {
+                                            return;
+                                        }
+
+                                        router.get(
+                                            `/attendance/calendar?month=${date.getMonth() + 1}&year=${date.getFullYear()}`,
+                                        );
+                                    }}
+                                    placeholder="Jump to month"
+                                />
+                            </div>
                             <Button variant="outline" size="sm" asChild>
                                 <Link href={previous}>Previous</Link>
                             </Button>

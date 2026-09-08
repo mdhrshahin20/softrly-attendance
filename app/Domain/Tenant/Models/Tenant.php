@@ -94,6 +94,17 @@ class Tenant extends BaseTenant
             ->withTimestamps();
     }
 
+    public function owner(): ?User
+    {
+        return $this->users()->wherePivot('is_owner', true)->first()
+            ?? $this->users()->first();
+    }
+
+    public function billingEmail(): ?string
+    {
+        return $this->owner()?->email ?: $this->email;
+    }
+
     /**
      * @return HasMany<Employee, $this>
      */

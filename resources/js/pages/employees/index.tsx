@@ -4,27 +4,23 @@ import { DataTable } from '@/components/data-table';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { PageShell } from '@/components/page-shell';
+import { Pagination, type Paginated } from '@/components/pagination';
+import { PersonIdentity } from '@/components/person-identity';
 import { StatusBadge } from '@/components/status-badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useInitials } from '@/hooks/use-initials';
 
 type EmployeeRow = {
     id: number;
     employee_code: string;
     full_name: string;
+    avatar?: string | null;
     email: string;
     status: string;
     joining_date?: string | null;
     department: { id: number; name: string } | null;
     designation: { id: number; name: string } | null;
     office: { id: number; name: string } | null;
-};
-
-type Paginated<T> = {
-    data: T[];
-    links: { url: string | null; label: string; active: boolean }[];
 };
 
 type Props = {
@@ -38,7 +34,6 @@ type Props = {
 
 export default function EmployeesIndex({ employees, filters, canExport = false, canImport = false }: Props) {
     const { can, subscription } = usePage().props;
-    const getInitials = useInitials();
     const usage = subscription as
         | { employees_used?: number; employee_limit?: number | null }
         | undefined;
@@ -123,7 +118,8 @@ export default function EmployeesIndex({ employees, filters, canExport = false, 
                         />
                     </div>
                 ) : (
-                    <DataTable>
+                    <>
+                        <DataTable>
                         <thead>
                             <tr>
                                 <th>Employee</th>
@@ -138,24 +134,12 @@ export default function EmployeesIndex({ employees, filters, canExport = false, 
                             {employees.data.map((employee) => (
                                 <tr key={employee.id}>
                                     <td>
-                                        <div className="flex items-center gap-3">
-                                            <Avatar className="size-8">
-                                                <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                                                    {getInitials(employee.full_name)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                                <div>
-                                                <Link
-                                                    href={`/employees/${employee.id}`}
-                                                    className="font-medium hover:underline"
-                                                >
-                                                    {employee.full_name}
-                                                </Link>
-                                                <div className="text-muted-foreground text-xs">
-                                                    {employee.designation?.name ?? employee.email}
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <PersonIdentity
+                                            name={employee.full_name}
+                                            avatar={employee.avatar}
+                                            detail={employee.designation?.name ?? employee.email}
+                                            href={`/employees/${employee.id}`}
+                                        />
                                     </td>
                                     <td className="font-mono text-xs">{employee.employee_code}</td>
                                     <td>{employee.department?.name ?? '—'}</td>
@@ -177,6 +161,8 @@ export default function EmployeesIndex({ employees, filters, canExport = false, 
                             ))}
                         </tbody>
                     </DataTable>
+                    <Pagination paginator={employees} />
+                    </>
                 )}
             </PageShell>
         </>

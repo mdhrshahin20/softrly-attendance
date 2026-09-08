@@ -24,6 +24,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class LeaveService
@@ -93,7 +94,11 @@ class LeaveService
         $path = null;
 
         if (($input['attachment'] ?? null) instanceof UploadedFile) {
-            $path = $input['attachment']->store('leave-attachments/'.Tenant::current()?->id, 'public');
+            $file = $input['attachment'];
+            $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'bin');
+            $basename = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
+            $filename = ($basename !== '' ? $basename : 'attachment').'-'.Str::lower(Str::random(8)).'.'.$extension;
+            $path = $file->storeAs('leave-attachments/'.Tenant::current()?->id, $filename, 'public');
         }
 
         $request = DB::transaction(function () use ($employee, $type, $start, $end, $days, $duration, $input, $path): LeaveRequest {

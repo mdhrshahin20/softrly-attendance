@@ -4,6 +4,8 @@ namespace Tests\Feature\Settings;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ProfileUpdateTest extends TestCase
@@ -41,6 +43,47 @@ class ProfileUpdateTest extends TestCase
         $this->assertSame('Test User', $user->name);
         $this->assertSame('test@example.com', $user->email);
         $this->assertNull($user->email_verified_at);
+    }
+
+    public function test_user_can_upload_and_remove_a_profile_photo()
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $photo = UploadedFile::fake()->image('avatar.jpg', 120, 120);
+
+        $this->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => $user->name,
+                'email' => $user->email,
+                'avatar' => $photo,
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('profile.edit'));
+
+        $user->refresh();
+
+        $this->assertNotNull($user->avatar_path);
+        Storage::disk('public')->assertExists($user->avatar_path);
+
+        $this->actingAs($user)
+            ->get(route('profile.edit'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('auth.user.avatar', $user->avatar));
+
+        $this->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => $user->name,
+                'email' => $user->email,
+                'remove_avatar' => true,
+            ])
+            ->assertSessionHasNoErrors();
+
+        $user->refresh();
+
+        $this->assertNull($user->avatar_path);
+        $this->assertNull($user->avatar);
     }
 
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged()

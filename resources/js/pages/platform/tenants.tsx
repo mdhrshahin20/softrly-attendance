@@ -1,4 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
+import { Pagination, type Paginated } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +17,7 @@ type Tenant = {
 };
 
 type Props = {
-    tenants: { data: Tenant[] };
+    tenants: Paginated<Tenant>;
     plans: { id: number; name: string }[];
     stats: { total: number; active: number; trial: number; suspended: number };
 };
@@ -89,6 +90,7 @@ export default function PlatformTenants({ tenants, plans, stats }: Props) {
                         </tbody>
                     </table>
                 </div>
+                <Pagination paginator={tenants} />
             </div>
         </>
     );

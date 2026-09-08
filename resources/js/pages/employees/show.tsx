@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     CheckCircle2,
     Clock3,
@@ -12,9 +12,10 @@ import { AttendanceLegend, AttendanceMonthGrid } from '@/components/attendance-m
 import { MetricCard } from '@/components/metric-card';
 import { PageHeader } from '@/components/page-header';
 import { PageShell } from '@/components/page-shell';
+import { PersonIdentity } from '@/components/person-identity';
 import { StatusBadge } from '@/components/status-badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
     Card,
     CardContent,
@@ -22,12 +23,13 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { useInitials } from '@/hooks/use-initials';
+import { parseISODate, toISODate } from '@/lib/datetime';
 
 type Employee = {
     id: number;
     employee_code: string;
     full_name: string;
+    avatar?: string | null;
     email: string;
     phone: string | null;
     joining_date: string | null;
@@ -96,7 +98,6 @@ export default function EmployeeShow({
     recentLeaves,
     canEdit,
 }: Props) {
-    const getInitials = useInitials();
     const previous =
         month === 1
             ? monthHref(employee.id, 12, year - 1)
@@ -113,6 +114,14 @@ export default function EmployeeShow({
                 <PageHeader
                     title={employee.full_name}
                     description={`${employee.employee_code}${employee.designation?.name ? ` · ${employee.designation.name}` : ''}${employee.department?.name ? ` · ${employee.department.name}` : ''}`}
+                    leading={
+                        <PersonIdentity
+                            name={employee.full_name}
+                            avatar={employee.avatar}
+                            size="lg"
+                            hideText
+                        />
+                    }
                     actions={
                         <>
                             <Button variant="outline" asChild>
@@ -132,11 +141,6 @@ export default function EmployeeShow({
 
                 <Card>
                     <CardContent className="flex flex-col gap-4 pt-0 sm:flex-row sm:items-center">
-                        <Avatar className="size-14">
-                            <AvatarFallback className="bg-primary/10 text-primary text-lg">
-                                {getInitials(employee.full_name)}
-                            </AvatarFallback>
-                        </Avatar>
                         <div className="grid flex-1 gap-1 text-sm sm:grid-cols-2 lg:grid-cols-4">
                             <div>
                                 <div className="text-muted-foreground">Office</div>
@@ -210,7 +214,26 @@ export default function EmployeeShow({
                             <CardTitle>Attendance · {month_label}</CardTitle>
                             <CardDescription>Green is on time, amber is late, blue is leave, red is absent.</CardDescription>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <div className="w-44">
+                                <DatePicker
+                                    value={toISODate(new Date(year, month - 1, 1))}
+                                    onChange={(iso) => {
+                                        const date = parseISODate(iso);
+
+                                        if (!date) {
+                                            return;
+                                        }
+
+                                        router.get(
+                                            monthHref(employee.id, date.getMonth() + 1, date.getFullYear()),
+                                            {},
+                                            { preserveScroll: true },
+                                        );
+                                    }}
+                                    placeholder="Jump to month"
+                                />
+                            </div>
                             <Button variant="outline" size="sm" asChild>
                                 <Link href={previous} preserveScroll>
                                     Previous
@@ -256,7 +279,9 @@ export default function EmployeeShow({
                             {recentLeaves.map((leave) => (
                                 <div key={leave.id} className="flex items-center justify-between gap-3 text-sm">
                                     <div>
-                                        <div>{leave.type}</div>
+                                        <Link href={`/leave/${leave.id}`} className="font-medium hover:underline">
+                                            {leave.type}
+                                        </Link>
                                         <div className="text-muted-foreground text-xs">
                                             {leave.start_date} – {leave.end_date}
                                         </div>

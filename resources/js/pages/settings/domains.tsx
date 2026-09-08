@@ -1,4 +1,6 @@
 import { Form, Head } from '@inertiajs/react';
+import { DeleteConfirm } from '@/components/delete-confirm';
+import { Pagination, type Paginated } from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +13,7 @@ type Domain = {
     status: string;
 };
 
-export default function DomainsIndex({ domains }: { domains: Domain[] }) {
+export default function DomainsIndex({ domains }: { domains: Paginated<Domain> }) {
     return (
         <>
             <Head title="Custom domains" />
@@ -27,7 +29,7 @@ export default function DomainsIndex({ domains }: { domains: Domain[] }) {
                     <Button type="submit">Add domain</Button>
                 </Form>
                 <ul className="max-w-xl space-y-2">
-                    {domains.map((domain) => (
+                    {domains.data.map((domain) => (
                         <li key={domain.id} className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
                             <div>
                                 <div className="font-medium">{domain.hostname}</div>
@@ -38,16 +40,19 @@ export default function DomainsIndex({ domains }: { domains: Domain[] }) {
                             <div className="flex items-center gap-2">
                                 {domain.is_primary && <Badge>Primary</Badge>}
                                 {domain.type === 'custom' && (
-                                    <Form action={`/settings/domains/${domain.id}`} method="delete">
-                                        <Button size="sm" variant="ghost" type="submit">
-                                            Remove
-                                        </Button>
-                                    </Form>
+                                    <DeleteConfirm
+                                        action={`/settings/domains/${domain.id}`}
+                                        title={`Remove ${domain.hostname}?`}
+                                        description={`${domain.hostname} will stop pointing at this workspace.`}
+                                        triggerLabel="Remove"
+                                        confirmLabel="Remove"
+                                    />
                                 )}
                             </div>
                         </li>
                     ))}
                 </ul>
+                <Pagination paginator={domains} />
             </div>
         </>
     );

@@ -3,6 +3,7 @@ import { Bell } from 'lucide-react';
 import { EmptyState } from '@/components/empty-state';
 import { PageHeader } from '@/components/page-header';
 import { PageShell } from '@/components/page-shell';
+import { Pagination, type Paginated } from '@/components/pagination';
 import { Button } from '@/components/ui/button';
 
 type NotificationItem = {
@@ -14,7 +15,7 @@ type NotificationItem = {
     created_at: string | null;
 };
 
-export default function NotificationsIndex({ notifications }: { notifications: NotificationItem[] }) {
+export default function NotificationsIndex({ notifications }: { notifications: Paginated<NotificationItem> }) {
     return (
         <>
             <Head title="Notifications" />
@@ -30,7 +31,7 @@ export default function NotificationsIndex({ notifications }: { notifications: N
                         </Form>
                     }
                 />
-                {notifications.length === 0 ? (
+                {notifications.data.length === 0 ? (
                     <div className="rounded-xl border">
                         <EmptyState
                             icon={Bell}
@@ -39,8 +40,9 @@ export default function NotificationsIndex({ notifications }: { notifications: N
                         />
                     </div>
                 ) : (
+                    <>
                     <div className="divide-y overflow-hidden rounded-xl border">
-                        {notifications.map((item) => (
+                        {notifications.data.map((item) => (
                             <div
                                 key={item.id}
                                 className={`flex items-start justify-between gap-4 p-4 ${item.read_at ? '' : 'bg-primary/4'}`}
@@ -64,6 +66,8 @@ export default function NotificationsIndex({ notifications }: { notifications: N
                             </div>
                         ))}
                     </div>
+                    <Pagination paginator={notifications} />
+                    </>
                 )}
             </PageShell>
         </>

@@ -7,6 +7,7 @@ use App\Domain\Shared\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -42,6 +43,14 @@ class Payment extends Model
     public function subscription(): BelongsTo
     {
         return $this->belongsTo(Subscription::class);
+    }
+
+    /**
+     * @return HasOne<Invoice, $this>
+     */
+    public function invoice(): HasOne
+    {
+        return $this->hasOne(Invoice::class);
     }
 
     protected function casts(): array

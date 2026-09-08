@@ -16,6 +16,7 @@ enum PlanFeature: string
     case ApiAccess = 'api_access';
     case CustomDomain = 'custom_domain';
     case LocationAttendance = 'location_attendance';
+    case Payroll = 'payroll';
 
     public function label(): string
     {
@@ -32,6 +33,7 @@ enum PlanFeature: string
             self::ApiAccess => 'API access',
             self::CustomDomain => 'Custom domain',
             self::LocationAttendance => 'Location attendance',
+            self::Payroll => 'Advanced salary management',
         };
     }
 }
