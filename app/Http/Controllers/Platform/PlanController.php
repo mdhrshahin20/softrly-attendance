@@ -27,9 +27,50 @@ class PlanController extends Controller
                 ->withCount('subscriptions')
                 ->orderBy('sort_order')
                 ->orderBy('name')
-                ->paginate(12)
+                ->paginate(20)
                 ->withQueryString()
                 ->through(fn (Plan $plan): array => $plan->toPublicArray()),
+        ]);
+    }
+
+    public function create(): Response
+    {
+        return Inertia::render('platform/plan-create', [
+            'featureOptions' => collect(PlanFeature::cases())->map(fn (PlanFeature $feature): array => [
+                'value' => $feature->value,
+                'label' => $feature->label(),
+            ])->values(),
+        ]);
+    }
+
+    public function show(Plan $plan): Response
+    {
+        $plan->load('features');
+        $plan->loadCount('subscriptions');
+
+        $subscribers = $plan->subscriptions()
+            ->with('tenant')
+            ->latest()
+            ->limit(50)
+            ->get()
+            ->map(fn ($subscription): array => [
+                'id' => $subscription->id,
+                'tenant_id' => $subscription->tenant_id,
+                'tenant' => $subscription->tenant?->name,
+                'tenant_email' => $subscription->tenant?->email,
+                'status' => $subscription->status->value,
+                'billing_cycle' => $subscription->billing_cycle->value,
+                'started_at' => $subscription->started_at?->toDateString(),
+                'current_period_end' => $subscription->current_period_end?->toDateString(),
+            ])
+            ->values();
+
+        return Inertia::render('platform/plan-show', [
+            'plan' => array_merge($plan->toPublicArray(), [
+                'created_at' => $plan->created_at?->toDateTimeString(),
+                'updated_at' => $plan->updated_at?->toDateTimeString(),
+            ]),
+            'subscribers' => $subscribers,
             'featureOptions' => collect(PlanFeature::cases())->map(fn (PlanFeature $feature): array => [
                 'value' => $feature->value,
                 'label' => $feature->label(),
@@ -61,7 +102,7 @@ class PlanController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Plan created.']);
 
-        return back();
+        return redirect()->route('platform.plans.show', $plan);
     }
 
     public function update(Request $request, Plan $plan): RedirectResponse
@@ -88,7 +129,7 @@ class PlanController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Plan updated.']);
 
-        return back();
+        return redirect()->route('platform.plans.show', $plan);
     }
 
     public function destroy(Plan $plan): RedirectResponse
@@ -104,7 +145,7 @@ class PlanController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Plan deleted.']);
 
-        return back();
+        return redirect()->route('platform.plans');
     }
 
     /**

@@ -30,8 +30,7 @@ class BkashGateway extends AbstractPaymentGateway
 
     public function isConfigured(): bool
     {
-        return $this->isEnabled()
-            && filled($this->settings->get('payments.bkash.app_key'))
+        return filled($this->settings->get('payments.bkash.app_key'))
             && filled($this->settings->get('payments.bkash.app_secret'))
             && filled($this->settings->get('payments.bkash.username'))
             && filled($this->settings->get('payments.bkash.password'));
@@ -99,6 +98,11 @@ class BkashGateway extends AbstractPaymentGateway
 
     private function isSandbox(): bool
     {
-        return (string) $this->settings->get('payments.mode', 'sandbox') !== 'live';
+        $mode = (string) $this->settings->get(
+            'payments.bkash.mode',
+            $this->settings->get('payments.mode', 'sandbox'),
+        );
+
+        return $mode !== 'live';
     }
 }

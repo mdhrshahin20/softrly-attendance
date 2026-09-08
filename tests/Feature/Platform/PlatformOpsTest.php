@@ -116,20 +116,50 @@ test('platform admin can save marketing pixels and payment gateways', function (
         ->and(app(PlatformSettingsService::class)->get('marketing.fb_pixel_id'))->toBe('999888777');
 
     $this->actingAs($admin)
-        ->put('/platform/gateways/payments', [
-            'default_gateway' => 'sslcommerz',
+        ->put('/platform/gateways/payments/sslcommerz', [
+            'enabled' => '1',
             'mode' => 'sandbox',
-            'sslcommerz_enabled' => '1',
-            'sslcommerz_store_id' => 'softrlytest',
+            'store_id' => 'softrlytest',
+            'store_password' => 'secret',
+            'is_preferred' => '1',
+        ])
+        ->assertRedirect();
+
+    $this->actingAs($admin)
+        ->put('/platform/gateways/payments/bkash', [
+            'enabled' => '1',
+            'mode' => 'live',
+            'app_key' => 'key',
+            'app_secret' => 'secret',
+            'username' => 'user',
+            'password' => 'pass',
+        ])
+        ->assertRedirect();
+
+    $this->actingAs($admin)
+        ->put('/platform/gateways/payments/manual', [
+            'enabled' => '1',
         ])
         ->assertRedirect();
 
     $manager = app(PaymentGatewayManager::class);
+    $settings = app(PlatformSettingsService::class);
 
     expect($manager->defaultDriver())->toBe('sslcommerz')
+        ->and($settings->get('payments.sslcommerz.mode'))->toBe('sandbox')
+        ->and($settings->get('payments.bkash.mode'))->toBe('live')
+        ->and(collect($manager->available())->pluck('name')->all())->toContain('manual', 'sslcommerz', 'bkash')
         ->and($manager->driver('sslcommerz')->label())->toBe('SSLCommerz')
         ->and($manager->driver('bkash')->label())->toBe('bKash')
         ->and($manager->driver('manual')->isConfigured())->toBeTrue();
+
+    $this->actingAs($admin)
+        ->get('/platform/gateways/payments/sslcommerz/configure')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('platform/gateway-configure')
+            ->where('gateway.name', 'sslcommerz')
+            ->where('config.mode', 'sandbox'));
 });
 
 test('platform dashboard and reports render analytics', function () {

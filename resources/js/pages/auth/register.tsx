@@ -39,13 +39,13 @@ export default function Register({ passwordRules, attribution = {} }: Props) {
                                     autoFocus
                                     tabIndex={1}
                                     name="company_name"
-                                    placeholder="Softrly Ltd"
+                                    placeholder="Acme Ltd"
                                 />
                                 <InputError message={errors.company_name || errors.slug} />
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="name">Owner name</Label>
+                                <Label htmlFor="name">Your name</Label>
                                 <Input
                                     id="name"
                                     type="text"
@@ -62,7 +62,7 @@ export default function Register({ passwordRules, attribution = {} }: Props) {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">Work email</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -70,7 +70,7 @@ export default function Register({ passwordRules, attribution = {} }: Props) {
                                     tabIndex={3}
                                     autoComplete="email"
                                     name="email"
-                                    placeholder="email@example.com"
+                                    placeholder="you@company.com"
                                 />
                                 <InputError message={errors.email} />
                             </div>
@@ -114,14 +114,14 @@ export default function Register({ passwordRules, attribution = {} }: Props) {
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
-                                Create account
+                                Start free trial
                             </Button>
                         </div>
 
                         <div className="text-muted-foreground text-center text-sm">
                             Already have an account?{' '}
                             <TextLink href={login()} tabIndex={6}>
-                                Log in
+                                Sign in
                             </TextLink>
                         </div>
                     </>
@@ -132,6 +132,6 @@ export default function Register({ passwordRules, attribution = {} }: Props) {
 }
 
 Register.layout = {
-    title: 'Start your free trial',
-    description: 'Create your company workspace and owner account',
+    title: 'Create your workspace',
+    description: 'Set up your company account and start a free trial in minutes.',
 };

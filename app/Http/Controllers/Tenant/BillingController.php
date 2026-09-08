@@ -7,6 +7,7 @@ use App\Domain\Billing\Models\Invoice;
 use App\Domain\Billing\Models\Payment;
 use App\Domain\Billing\Models\Plan;
 use App\Domain\Billing\Services\InvoiceService;
+use App\Domain\Billing\Services\PaymentGatewayManager;
 use App\Domain\Billing\Services\PlanCatalog;
 use App\Domain\Billing\Services\SubscriptionService;
 use App\Domain\Tenant\Models\Tenant;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,6 +25,7 @@ class BillingController extends Controller
         private readonly SubscriptionService $subscriptions,
         private readonly PlanCatalog $plans,
         private readonly InvoiceService $invoices,
+        private readonly PaymentGatewayManager $gateways,
     ) {}
 
     public function index(Request $request): Response
@@ -32,6 +35,7 @@ class BillingController extends Controller
         return Inertia::render('billing/index', [
             'subscription' => $this->subscriptions->snapshot(),
             'plans' => $this->plans->publicPlans()->map->toPublicArray()->values(),
+            'gateways' => $this->gateways->available(),
             'payments' => Payment::query()
                 ->latest()
                 ->paginate(10, ['*'], 'payment_page')
@@ -64,9 +68,12 @@ class BillingController extends Controller
     {
         abort_unless($request->user()?->can('settings.manage'), 403);
 
+        $available = collect($this->gateways->available())->pluck('name')->all();
+
         $data = $request->validate([
             'plan_id' => ['required', 'integer', 'exists:plans,id'],
             'billing_cycle' => ['required', 'in:monthly,yearly'],
+            'gateway' => ['nullable', 'string', Rule::in($available)],
         ]);
 
         $plan = Plan::query()->with('features')->findOrFail($data['plan_id']);
@@ -78,6 +85,8 @@ class BillingController extends Controller
             $plan,
             BillingCycle::from($data['billing_cycle']),
             $request->user(),
+            true,
+            $data['gateway'] ?? null,
         );
 
         if ($checkout = session()->pull('billing.checkout_url')) {

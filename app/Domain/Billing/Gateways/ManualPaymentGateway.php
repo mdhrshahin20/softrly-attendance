@@ -3,9 +3,14 @@
 namespace App\Domain\Billing\Gateways;
 
 use App\Domain\Billing\Models\Payment;
+use App\Domain\Platform\Services\PlatformSettingsService;
 
 class ManualPaymentGateway extends AbstractPaymentGateway
 {
+    public function __construct(
+        private readonly PlatformSettingsService $settings,
+    ) {}
+
     public function name(): string
     {
         return 'manual';
@@ -18,7 +23,7 @@ class ManualPaymentGateway extends AbstractPaymentGateway
 
     public function isEnabled(): bool
     {
-        return true;
+        return $this->settings->bool('payments.manual.enabled');
     }
 
     public function isConfigured(): bool

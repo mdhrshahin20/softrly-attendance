@@ -25,7 +25,6 @@ class GatewaySettingsController extends Controller
     public function index(): Response
     {
         return Inertia::render('platform/gateways', [
-            'payments' => $this->settings->group('payments'),
             'mail' => collect($this->settings->group('mail'))
                 ->except(['smtp_password', 'ses_password', 'brevo_key'])
                 ->merge([
@@ -59,36 +58,116 @@ class GatewaySettingsController extends Controller
         ]);
     }
 
-    public function updatePayments(Request $request): RedirectResponse
+    public function configurePayment(string $gateway): Response
+    {
+        abort_unless($this->gateways->exists($gateway), 404);
+
+        return Inertia::render('platform/gateway-configure', [
+            'gateway' => $this->gateways->find($gateway),
+            'config' => $this->gateways->configPayload($gateway),
+        ]);
+    }
+
+    public function updatePayment(Request $request, string $gateway): RedirectResponse
+    {
+        abort_unless($this->gateways->exists($gateway), 404);
+
+        match ($gateway) {
+            'manual' => $this->saveManual($request),
+            'sslcommerz' => $this->saveSslCommerz($request),
+            'bkash' => $this->saveBkash($request),
+            default => abort(404),
+        };
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => ucfirst($gateway).' gateway saved.']);
+
+        return redirect()->route('platform.gateways.payments.configure', $gateway);
+    }
+
+    private function saveManual(Request $request): void
+    {
+        $enabled = $this->asBool($request->input('enabled', true));
+        $makePreferred = $this->asBool($request->input('is_preferred'));
+
+        $this->settings->set('payments.manual.enabled', $enabled);
+
+        if ($makePreferred && $enabled) {
+            $this->settings->set('payments.default_gateway', 'manual');
+        } elseif (! $enabled && $this->settings->get('payments.default_gateway') === 'manual') {
+            $this->reassignPreferred('manual');
+        }
+    }
+
+    private function saveSslCommerz(Request $request): void
     {
         $data = $request->validate([
-            'default_gateway' => ['required', 'in:manual,sslcommerz,bkash'],
             'mode' => ['required', 'in:sandbox,live'],
-            'sslcommerz_store_id' => ['nullable', 'string', 'max:120'],
-            'sslcommerz_store_password' => ['nullable', 'string', 'max:120'],
-            'bkash_app_key' => ['nullable', 'string', 'max:120'],
-            'bkash_app_secret' => ['nullable', 'string', 'max:120'],
-            'bkash_username' => ['nullable', 'string', 'max:120'],
-            'bkash_password' => ['nullable', 'string', 'max:120'],
+            'store_id' => ['nullable', 'string', 'max:120'],
+            'store_password' => ['nullable', 'string', 'max:120'],
         ]);
+
+        $enabled = $this->asBool($request->input('enabled'));
+        $makePreferred = $this->asBool($request->input('is_preferred'));
 
         $this->settings->putMany([
-            'payments.default_gateway' => $data['default_gateway'],
-            'payments.mode' => $data['mode'],
-            'payments.sslcommerz.enabled' => $this->asBool($request->input('sslcommerz_enabled')),
-            'payments.sslcommerz.store_id' => $data['sslcommerz_store_id'] ?? '',
-            'payments.bkash.enabled' => $this->asBool($request->input('bkash_enabled')),
-            'payments.bkash.app_key' => $data['bkash_app_key'] ?? '',
-            'payments.bkash.username' => $data['bkash_username'] ?? '',
+            'payments.sslcommerz.enabled' => $enabled,
+            'payments.sslcommerz.mode' => $data['mode'],
+            'payments.sslcommerz.store_id' => $data['store_id'] ?? '',
         ]);
 
-        $this->optionalSecret('payments.sslcommerz.store_password', $data['sslcommerz_store_password'] ?? null);
-        $this->optionalSecret('payments.bkash.app_secret', $data['bkash_app_secret'] ?? null);
-        $this->optionalSecret('payments.bkash.password', $data['bkash_password'] ?? null);
+        $this->optionalSecret('payments.sslcommerz.store_password', $data['store_password'] ?? null);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Payment gateways saved.']);
+        if ($makePreferred && $enabled) {
+            $this->settings->set('payments.default_gateway', 'sslcommerz');
+        } elseif (! $enabled && $this->settings->get('payments.default_gateway') === 'sslcommerz') {
+            $this->reassignPreferred('sslcommerz');
+        }
+    }
 
-        return back();
+    private function saveBkash(Request $request): void
+    {
+        $data = $request->validate([
+            'mode' => ['required', 'in:sandbox,live'],
+            'app_key' => ['nullable', 'string', 'max:120'],
+            'app_secret' => ['nullable', 'string', 'max:120'],
+            'username' => ['nullable', 'string', 'max:120'],
+            'password' => ['nullable', 'string', 'max:120'],
+        ]);
+
+        $enabled = $this->asBool($request->input('enabled'));
+        $makePreferred = $this->asBool($request->input('is_preferred'));
+
+        $this->settings->putMany([
+            'payments.bkash.enabled' => $enabled,
+            'payments.bkash.mode' => $data['mode'],
+            'payments.bkash.app_key' => $data['app_key'] ?? '',
+            'payments.bkash.username' => $data['username'] ?? '',
+        ]);
+
+        $this->optionalSecret('payments.bkash.app_secret', $data['app_secret'] ?? null);
+        $this->optionalSecret('payments.bkash.password', $data['password'] ?? null);
+
+        if ($makePreferred && $enabled) {
+            $this->settings->set('payments.default_gateway', 'bkash');
+        } elseif (! $enabled && $this->settings->get('payments.default_gateway') === 'bkash') {
+            $this->reassignPreferred('bkash');
+        }
+    }
+
+    private function reassignPreferred(string $except): void
+    {
+        foreach ($this->gateways->catalog() as $item) {
+            if ($item['name'] !== $except && $item['enabled']) {
+                $this->settings->set('payments.default_gateway', $item['name']);
+
+                return;
+            }
+        }
+
+        $this->settings->putMany([
+            'payments.manual.enabled' => true,
+            'payments.default_gateway' => 'manual',
+        ]);
     }
 
     public function updateMail(Request $request): RedirectResponse

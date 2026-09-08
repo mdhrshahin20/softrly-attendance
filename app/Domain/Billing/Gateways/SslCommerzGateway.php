@@ -30,8 +30,7 @@ class SslCommerzGateway extends AbstractPaymentGateway
 
     public function isConfigured(): bool
     {
-        return $this->isEnabled()
-            && filled($this->settings->get('payments.sslcommerz.store_id'))
+        return filled($this->settings->get('payments.sslcommerz.store_id'))
             && filled($this->settings->get('payments.sslcommerz.store_password'));
     }
 
@@ -93,6 +92,11 @@ class SslCommerzGateway extends AbstractPaymentGateway
 
     private function isSandbox(): bool
     {
-        return (string) $this->settings->get('payments.mode', 'sandbox') !== 'live';
+        $mode = (string) $this->settings->get(
+            'payments.sslcommerz.mode',
+            $this->settings->get('payments.mode', 'sandbox'),
+        );
+
+        return $mode !== 'live';
     }
 }

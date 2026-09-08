@@ -36,6 +36,14 @@ type Props = {
         office_limit: number | null;
     };
     plans: Plan[];
+    gateways: {
+        name: string;
+        label: string;
+        enabled: boolean;
+        configured: boolean;
+        requires_redirect: boolean;
+        default: boolean;
+    }[];
     payments: Paginated<{
         id: number;
         amount: number;
@@ -58,7 +66,16 @@ type Props = {
     cycles: { value: string; label: string }[];
 };
 
-export default function BillingIndex({ subscription, plans, payments, invoices, cycles }: Props) {
+export default function BillingIndex({
+    subscription,
+    plans,
+    gateways = [],
+    payments,
+    invoices,
+    cycles,
+}: Props) {
+    const preferredGateway =
+        gateways.find((gateway) => gateway.default)?.name ?? gateways[0]?.name ?? 'manual';
     return (
         <>
             <Head title="Billing" />
@@ -191,14 +208,47 @@ export default function BillingIndex({ subscription, plans, payments, invoices, 
                                 ))}
                             </ul>
                             {plan.monthly_price > 0 && (
-                                <Form action="/billing/subscribe" method="post" className="mt-4 space-y-2">
+                                <Form action="/billing/subscribe" method="post" className="mt-4 space-y-3">
                                     <input type="hidden" name="plan_id" value={plan.id} />
-                                    <select name="billing_cycle" className="border-input h-9 w-full rounded-md border px-3 text-sm" defaultValue="monthly">
+                                    <select
+                                        name="billing_cycle"
+                                        className="border-input h-9 w-full rounded-md border px-3 text-sm"
+                                        defaultValue="monthly"
+                                    >
                                         {cycles.map((cycle) => (
-                                            <option key={cycle.value} value={cycle.value}>{cycle.label}</option>
+                                            <option key={cycle.value} value={cycle.value}>
+                                                {cycle.label}
+                                            </option>
                                         ))}
                                     </select>
-                                    <Button type="submit" className="w-full">Pay & activate</Button>
+                                    {gateways.length > 0 ? (
+                                        <div className="space-y-2">
+                                            <div className="text-muted-foreground text-xs font-medium">
+                                                Payment method
+                                            </div>
+                                            <div className="grid gap-2">
+                                                {gateways.map((gateway) => (
+                                                    <label
+                                                        key={gateway.name}
+                                                        className="hover:bg-muted/40 flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm"
+                                                    >
+                                                        <input
+                                                            type="radio"
+                                                            name="gateway"
+                                                            value={gateway.name}
+                                                            defaultChecked={
+                                                                gateway.name === preferredGateway
+                                                            }
+                                                        />
+                                                        <span className="font-medium">{gateway.label}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ) : null}
+                                    <Button type="submit" className="w-full">
+                                        Pay & activate
+                                    </Button>
                                 </Form>
                             )}
                         </div>

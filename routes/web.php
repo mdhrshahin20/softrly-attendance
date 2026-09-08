@@ -42,7 +42,12 @@ use App\Http\Controllers\Tenant\WorkingDayController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
+Route::inertia('features', 'marketing/features')->name('features');
 Route::get('pricing', PricingController::class)->name('pricing');
+Route::inertia('about', 'marketing/about')->name('about');
+Route::inertia('contact', 'marketing/contact')->name('contact');
+Route::inertia('privacy', 'marketing/privacy')->name('privacy');
+Route::inertia('terms', 'marketing/terms')->name('terms');
 
 Route::get('billing/gateways/sslcommerz/success', [GatewayCallbackController::class, 'sslSuccess'])->name('billing.gateways.sslcommerz.success');
 Route::get('billing/gateways/sslcommerz/fail', [GatewayCallbackController::class, 'sslFail'])->name('billing.gateways.sslcommerz.fail');
@@ -163,11 +168,14 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.session'])->group(funct
 Route::middleware(['auth', 'verified', 'platform'])->prefix('platform')->name('platform.')->group(function () {
     Route::get('/', PlatformDashboardController::class)->name('dashboard');
     Route::get('tenants', [PlatformTenantController::class, 'index'])->name('tenants');
+    Route::get('tenants/{tenant}', [PlatformTenantController::class, 'show'])->name('tenants.show');
     Route::patch('tenants/{tenant}/status', [PlatformTenantController::class, 'updateStatus'])->name('tenants.status');
     Route::patch('tenants/{tenant}/plan', [PlatformTenantController::class, 'updatePlan'])->name('tenants.plan');
     Route::patch('tenants/{tenant}/trial', [PlatformTenantController::class, 'extendTrial'])->name('tenants.trial');
     Route::get('plans', [PlatformPlanController::class, 'index'])->name('plans');
+    Route::get('plans/create', [PlatformPlanController::class, 'create'])->name('plans.create');
     Route::post('plans', [PlatformPlanController::class, 'store'])->name('plans.store');
+    Route::get('plans/{plan}', [PlatformPlanController::class, 'show'])->name('plans.show');
     Route::put('plans/{plan}', [PlatformPlanController::class, 'update'])->name('plans.update');
     Route::delete('plans/{plan}', [PlatformPlanController::class, 'destroy'])->name('plans.destroy');
     Route::get('invoices', [PlatformInvoiceController::class, 'index'])->name('invoices');
@@ -183,7 +191,8 @@ Route::middleware(['auth', 'verified', 'platform'])->prefix('platform')->name('p
     Route::get('marketing', [PlatformMarketingController::class, 'index'])->name('marketing');
     Route::put('marketing', [PlatformMarketingController::class, 'update'])->name('marketing.update');
     Route::get('gateways', [PlatformGatewaySettingsController::class, 'index'])->name('gateways');
-    Route::put('gateways/payments', [PlatformGatewaySettingsController::class, 'updatePayments'])->name('gateways.payments');
+    Route::get('gateways/payments/{gateway}/configure', [PlatformGatewaySettingsController::class, 'configurePayment'])->name('gateways.payments.configure');
+    Route::put('gateways/payments/{gateway}', [PlatformGatewaySettingsController::class, 'updatePayment'])->name('gateways.payments.update');
     Route::put('gateways/mail', [PlatformGatewaySettingsController::class, 'updateMail'])->name('gateways.mail');
     Route::put('gateways/sms', [PlatformGatewaySettingsController::class, 'updateSms'])->name('gateways.sms');
     Route::post('gateways/mail/test', [PlatformGatewaySettingsController::class, 'testMail'])->name('gateways.mail.test');

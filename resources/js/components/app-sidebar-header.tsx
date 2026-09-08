@@ -1,8 +1,19 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Bell } from 'lucide-react';
+import { Bell, CircleHelp, CreditCard, LogOut, Settings, UserRound } from 'lucide-react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import { UserInfo } from '@/components/user-info';
+import { logout } from '@/routes';
+import { edit as editProfile } from '@/routes/profile';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
 
 export function AppSidebarHeader({
@@ -10,33 +21,103 @@ export function AppSidebarHeader({
 }: {
     breadcrumbs?: BreadcrumbItemType[];
 }) {
-    const { unreadNotifications, can } = usePage().props;
+    const { unreadNotifications, can, auth } = usePage().props;
     const unread = Number(unreadNotifications ?? 0);
     const showNotifications = !can?.platform;
+    const showBilling = Boolean(can?.manageBilling) && !can?.platform;
 
     return (
-        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 md:px-6 dark:border-border dark:bg-card">
+        <header className="bg-background/90 sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b px-4 backdrop-blur-md md:px-6">
             <div className="flex min-w-0 flex-1 items-center gap-2">
-                <SidebarTrigger className="-ml-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:text-muted-foreground dark:hover:bg-accent dark:hover:text-foreground" />
+                <SidebarTrigger className="text-muted-foreground hover:text-foreground -ml-1" />
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
-            {showNotifications ? (
+
+            <div className="flex items-center gap-1.5">
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="relative size-9 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:text-muted-foreground dark:hover:bg-accent dark:hover:text-foreground"
+                    className="text-muted-foreground hover:text-foreground size-9"
                     asChild
                 >
-                    <Link href="/notifications" aria-label="Notifications">
-                        <Bell className="size-4" />
-                        {unread > 0 ? (
-                            <span className="bg-primary text-primary-foreground absolute top-1.5 right-1.5 flex size-4 items-center justify-center rounded-full text-[10px] font-medium">
-                                {unread > 9 ? '9+' : unread}
-                            </span>
-                        ) : null}
+                    <Link href="/contact" aria-label="Help" title="Help">
+                        <CircleHelp className="size-4" />
                     </Link>
                 </Button>
-            ) : null}
+
+                {showNotifications ? (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-foreground relative size-9"
+                        asChild
+                    >
+                        <Link href="/notifications" aria-label="Notifications">
+                            <Bell className="size-4" />
+                            {unread > 0 ? (
+                                <span className="bg-primary text-primary-foreground absolute top-1.5 right-1.5 flex size-4 items-center justify-center rounded-full text-[10px] font-medium">
+                                    {unread > 9 ? '9+' : unread}
+                                </span>
+                            ) : null}
+                        </Link>
+                    </Button>
+                ) : null}
+
+                {auth.user ? (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                className="h-9 gap-2 px-1.5 sm:px-2"
+                                aria-label="Account menu"
+                            >
+                                <UserInfo user={auth.user} compact />
+                                <span className="hidden max-w-[140px] truncate text-sm font-medium sm:inline">
+                                    {auth.user.name}
+                                </span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="min-w-56">
+                            <DropdownMenuLabel className="font-normal">
+                                <div className="flex flex-col gap-0.5">
+                                    <span className="text-sm font-medium">{auth.user.name}</span>
+                                    <span className="text-muted-foreground text-xs">
+                                        {auth.user.email}
+                                    </span>
+                                </div>
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                                <Link href={editProfile()}>
+                                    <UserRound className="mr-2 size-4" />
+                                    Profile
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link href="/settings/security">
+                                    <Settings className="mr-2 size-4" />
+                                    Settings
+                                </Link>
+                            </DropdownMenuItem>
+                            {showBilling ? (
+                                <DropdownMenuItem asChild>
+                                    <Link href="/billing">
+                                        <CreditCard className="mr-2 size-4" />
+                                        Billing
+                                    </Link>
+                                </DropdownMenuItem>
+                            ) : null}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                                <Link href={logout()} method="post" as="button" className="w-full">
+                                    <LogOut className="mr-2 size-4" />
+                                    Log out
+                                </Link>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                ) : null}
+            </div>
         </header>
     );
 }

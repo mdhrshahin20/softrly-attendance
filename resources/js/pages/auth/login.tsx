@@ -88,14 +88,14 @@ export default function Login({ status, canResetPassword }: Props) {
                                 data-test="login-button"
                             >
                                 {processing && <Spinner />}
-                                Log in
+                                Sign in
                             </Button>
                         </div>
 
                         <div className="text-muted-foreground text-center text-sm">
-                            Don't have an account?{' '}
+                            Don&apos;t have an account?{' '}
                             <TextLink href={register()} tabIndex={5}>
-                                Sign up
+                                Create your account
                             </TextLink>
                         </div>
                     </>
@@ -112,6 +112,6 @@ export default function Login({ status, canResetPassword }: Props) {
 }
 
 Login.layout = {
-    title: 'Log in to your account',
-    description: 'Enter your email and password below to log in',
+    title: 'Welcome back',
+    description: 'Sign in to your Softrly workspace to manage attendance, leave, and your team.',
 };

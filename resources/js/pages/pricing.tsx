@@ -1,5 +1,9 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { login, register } from '@/routes';
+import { Check } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { register } from '@/routes';
 
 type Plan = {
     id: number;
@@ -17,67 +21,130 @@ type Plan = {
 
 export default function Pricing({ plans }: { plans: Plan[] }) {
     const { auth } = usePage().props;
+    const [yearly, setYearly] = useState(false);
+
+    const recommended = useMemo(() => {
+        const growth = plans.find((plan) => plan.slug.includes('growth') || plan.slug.includes('professional'));
+        return growth?.id ?? plans[1]?.id ?? plans[0]?.id;
+    }, [plans]);
 
     return (
         <>
-            <Head title="Pricing" />
-            <div className="min-h-screen bg-[#F6F7F4] text-[#1B1B18]">
-                <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-                    <Link href="/" className="text-lg font-semibold tracking-tight">
-                        Softrly Attendance
-                    </Link>
-                    <nav className="flex items-center gap-3 text-sm">
-                        {auth.user ? (
-                            <Link href="/dashboard" className="rounded-full bg-[#1B1B18] px-4 py-2 text-white">
-                                Dashboard
-                            </Link>
-                        ) : (
-                            <>
-                                <Link href={login()} className="px-3 py-2">Log in</Link>
-                                <Link href={register()} className="rounded-full bg-[#1B1B18] px-4 py-2 text-white">
-                                    Start free trial
-                                </Link>
-                            </>
-                        )}
-                    </nav>
-                </header>
-                <main className="mx-auto max-w-6xl px-6 pb-20">
-                    <div className="py-12 text-center">
-                        <p className="text-sm font-medium tracking-wide text-[#5C7A4A] uppercase">Simple SaaS pricing</p>
-                        <h1 className="mt-3 text-4xl font-semibold tracking-tight">14 days free, then pick a plan.</h1>
-                        <p className="mx-auto mt-4 max-w-2xl text-[#5F5E5A]">
-                            Employee and office limits are enforced per tenant. Upgrade any time from Billing.
-                        </p>
+            <Head title="Pricing">
+                <meta
+                    head-key="description"
+                    name="description"
+                    content="Simple Softrly pricing for attendance and leave management. Start with a free trial, then pick a plan."
+                />
+            </Head>
+            <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
+                <div className="mx-auto max-w-2xl text-center">
+                    <p className="text-primary text-sm font-medium">Pricing</p>
+                    <h1 className="mt-3 text-4xl font-semibold tracking-tight">Simple plans for growing teams</h1>
+                    <p className="text-muted-foreground mt-4 text-base leading-7">
+                        Start with a free trial. Employee and office limits are enforced per workspace.
+                        Upgrade any time from Billing.
+                    </p>
+                    <div className="mt-8 inline-flex items-center gap-2 rounded-full border bg-card p-1 text-sm">
+                        <button
+                            type="button"
+                            className={cn(
+                                'rounded-full px-4 py-1.5 transition-colors',
+                                !yearly ? 'bg-primary text-primary-foreground' : 'text-muted-foreground',
+                            )}
+                            onClick={() => setYearly(false)}
+                        >
+                            Monthly
+                        </button>
+                        <button
+                            type="button"
+                            className={cn(
+                                'rounded-full px-4 py-1.5 transition-colors',
+                                yearly ? 'bg-primary text-primary-foreground' : 'text-muted-foreground',
+                            )}
+                            onClick={() => setYearly(true)}
+                        >
+                            Yearly
+                        </button>
                     </div>
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                        {plans.map((plan) => (
-                            <div key={plan.id} className="flex flex-col rounded-3xl border border-[#1B1B18]/10 bg-white p-6">
+                    {yearly ? (
+                        <p className="text-muted-foreground mt-3 text-sm">Save with yearly billing on eligible plans.</p>
+                    ) : null}
+                </div>
+
+                <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+                    {plans.map((plan) => {
+                        const isRecommended = plan.id === recommended;
+                        const price = yearly ? plan.yearly_price : plan.monthly_price;
+                        const period = yearly ? 'year' : 'month';
+
+                        return (
+                            <div
+                                key={plan.id}
+                                className={cn(
+                                    'bg-card relative flex flex-col rounded-2xl border p-6',
+                                    isRecommended && 'border-primary shadow-sm ring-1 ring-primary/20',
+                                )}
+                            >
+                                {isRecommended ? (
+                                    <span className="bg-primary text-primary-foreground absolute -top-3 left-6 rounded-full px-2.5 py-0.5 text-[11px] font-medium">
+                                        Recommended
+                                    </span>
+                                ) : null}
                                 <h2 className="text-xl font-semibold">{plan.name}</h2>
-                                <p className="mt-2 min-h-12 text-sm text-[#5F5E5A]">{plan.description}</p>
-                                <div className="mt-6 text-3xl font-semibold">
-                                    {plan.monthly_price === 0 ? 'Custom' : `৳${plan.monthly_price.toLocaleString()}`}
+                                <p className="text-muted-foreground mt-2 min-h-12 text-sm leading-6">
+                                    {plan.description || 'Built for your team size and operations.'}
+                                </p>
+                                <div className="mt-6">
+                                    <div className="text-3xl font-semibold tracking-tight">
+                                        {price === 0 ? 'Custom' : `৳${price.toLocaleString()}`}
+                                    </div>
+                                    <div className="text-muted-foreground mt-1 text-sm">
+                                        {price === 0 ? 'Talk to us' : `per ${period}`}
+                                    </div>
                                 </div>
-                                <div className="text-muted-foreground text-sm">
-                                    {plan.monthly_price === 0 ? 'Talk to us' : 'per month · ৳' + plan.yearly_price.toLocaleString() + ' yearly'}
-                                </div>
-                                <ul className="mt-6 space-y-2 text-sm">
-                                    <li>{plan.employee_limit_label}</li>
-                                    <li>{plan.office_limit_label}</li>
-                                    {plan.feature_labels.map((feature) => (
-                                        <li key={feature}>{feature}</li>
+                                <ul className="mt-6 flex-1 space-y-2.5 text-sm">
+                                    <li className="flex gap-2">
+                                        <Check className="text-primary mt-0.5 size-4 shrink-0" />
+                                        {plan.employee_limit_label}
+                                    </li>
+                                    <li className="flex gap-2">
+                                        <Check className="text-primary mt-0.5 size-4 shrink-0" />
+                                        {plan.office_limit_label}
+                                    </li>
+                                    {plan.feature_labels.slice(0, 6).map((feature) => (
+                                        <li key={feature} className="flex gap-2">
+                                            <Check className="text-primary mt-0.5 size-4 shrink-0" />
+                                            {feature}
+                                        </li>
                                     ))}
                                 </ul>
-                                <Link
-                                    href={`/register?utm_source=pricing&utm_campaign=${plan.slug}`}
-                                    className="mt-8 inline-flex justify-center rounded-full bg-[#1B1B18] px-4 py-2 text-sm text-white"
-                                >
-                                    Start {plan.trial_days}-day trial
-                                </Link>
+                                <Button className="mt-8" variant={isRecommended ? 'default' : 'outline'} asChild>
+                                    <Link
+                                        href={
+                                            auth.user
+                                                ? '/billing'
+                                                : `/register?utm_source=pricing&utm_campaign=${plan.slug}`
+                                        }
+                                    >
+                                        {auth.user
+                                            ? 'Manage billing'
+                                            : price === 0
+                                              ? 'Contact sales'
+                                              : `Start ${plan.trial_days}-day trial`}
+                                    </Link>
+                                </Button>
                             </div>
-                        ))}
-                    </div>
-                </main>
-            </div>
+                        );
+                    })}
+                </div>
+
+                <div className="mt-12 text-center">
+                    <Button variant="ghost" asChild>
+                        <Link href={register()}>Create your workspace</Link>
+                    </Button>
+                </div>
+            </section>
         </>
     );
 }

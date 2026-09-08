@@ -19,10 +19,13 @@ class PlatformSettingsService
         return [
             'payments.default_gateway' => 'manual',
             'payments.mode' => 'sandbox',
+            'payments.manual.enabled' => true,
             'payments.sslcommerz.enabled' => false,
+            'payments.sslcommerz.mode' => 'sandbox',
             'payments.sslcommerz.store_id' => '',
             'payments.sslcommerz.store_password' => '',
             'payments.bkash.enabled' => false,
+            'payments.bkash.mode' => 'sandbox',
             'payments.bkash.app_key' => '',
             'payments.bkash.app_secret' => '',
             'payments.bkash.username' => '',

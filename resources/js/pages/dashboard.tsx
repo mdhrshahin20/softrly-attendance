@@ -190,7 +190,7 @@ export default function Dashboard({
                     title={`${greeting()}, ${firstName}`}
                     description={
                         teamToday
-                            ? "Here's what's happening across your organization today."
+                            ? "Here's what's happening with your workforce today."
                             : employee?.shift
                               ? `${employee.office?.name ?? 'No office'} · ${employee.shift.start_time} – ${employee.shift.end_time}`
                               : 'Your attendance and leave at a glance.'

@@ -28,15 +28,17 @@ export function NetworkStatus({
                     aria-hidden="true"
                 />
                 <span>
-                    {allowed ? 'Office network connected' : 'Network not authorized'}
+                    {allowed
+                        ? "You're connected to an approved office network."
+                        : 'Attendance is only available from an approved office network.'}
                 </span>
             </div>
             <p className="text-muted-foreground text-sm">
                 {allowed
                     ? [officeName, networkName].filter(Boolean).join(' · ') ||
-                      'Authorized office network'
+                      'You can check in from this location.'
                     : message ||
-                      'Connect to your organization’s office network to mark attendance.'}
+                      'Connect to your office network, then try again.'}
             </p>
             {showTechnical && ip ? (
                 <p className="text-muted-foreground font-mono text-xs">{ip}</p>

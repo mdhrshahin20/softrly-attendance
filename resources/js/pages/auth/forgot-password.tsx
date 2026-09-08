@@ -1,4 +1,3 @@
-// Components
 import { Form, Head } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import InputError from '@/components/input-error';
@@ -14,11 +13,11 @@ export default function ForgotPassword({ status }: { status?: string }) {
         <>
             <Head title="Forgot password" />
 
-            {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
+            {status ? (
+                <div className="mb-6 rounded-xl border border-success/30 bg-success/10 px-4 py-3 text-sm text-success-foreground">
                     {status}
                 </div>
-            )}
+            ) : null}
 
             <div className="space-y-6">
                 <Form {...email.form()}>
@@ -30,33 +29,30 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     id="email"
                                     type="email"
                                     name="email"
-                                    autoComplete="off"
+                                    autoComplete="email"
                                     autoFocus
-                                    placeholder="email@example.com"
+                                    placeholder="you@company.com"
                                 />
-
                                 <InputError message={errors.email} />
                             </div>
 
-                            <div className="my-6 flex items-center justify-start">
-                                <Button
-                                    className="w-full"
-                                    disabled={processing}
-                                    data-test="email-password-reset-link-button"
-                                >
-                                    {processing && (
-                                        <LoaderCircle className="h-4 w-4 animate-spin" />
-                                    )}
-                                    Email password reset link
-                                </Button>
-                            </div>
+                            <Button
+                                className="w-full"
+                                disabled={processing}
+                                data-test="email-password-reset-link-button"
+                            >
+                                {processing ? (
+                                    <LoaderCircle className="size-4 animate-spin" />
+                                ) : null}
+                                Send reset link
+                            </Button>
                         </>
                     )}
                 </Form>
 
-                <div className="text-muted-foreground space-x-1 text-center text-sm">
-                    <span>Or, return to</span>
-                    <TextLink href={login()}>log in</TextLink>
+                <div className="text-muted-foreground text-center text-sm">
+                    Remembered your password?{' '}
+                    <TextLink href={login()}>Sign in</TextLink>
                 </div>
             </div>
         </>
@@ -64,6 +60,6 @@ export default function ForgotPassword({ status }: { status?: string }) {
 }
 
 ForgotPassword.layout = {
-    title: 'Forgot password',
-    description: 'Enter your email to receive a password reset link',
+    title: 'Reset your password',
+    description: 'Enter your email and we will send you a secure reset link.',
 };

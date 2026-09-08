@@ -4,9 +4,10 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { initializeTheme } from '@/hooks/use-appearance';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
+import MarketingLayout from '@/layouts/marketing-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'Softrly';
 
 void createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
@@ -14,7 +15,8 @@ void createInertiaApp({
         switch (true) {
             case name === 'welcome':
             case name === 'pricing':
-                return null;
+            case name.startsWith('marketing/'):
+                return MarketingLayout;
             case name.startsWith('auth/'):
                 return AuthLayout;
             case name.startsWith('settings/'):
@@ -33,7 +35,7 @@ void createInertiaApp({
         );
     },
     progress: {
-                color: '#4F46B8',
+        color: '#4F46B8',
     },
 });
 
