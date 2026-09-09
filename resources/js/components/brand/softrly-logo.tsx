@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, type InertiaLinkProps } from '@inertiajs/react';
 import { cn } from '@/lib/utils';
 
 type LogoVariant = 'full' | 'mark' | 'wordmark' | 'compact';
@@ -7,12 +7,16 @@ type LogoTone = 'default' | 'inverse' | 'muted';
 type SoftrlyLogoProps = {
     variant?: LogoVariant;
     tone?: LogoTone;
-    href?: string | null;
+    href?: InertiaLinkProps['href'] | null;
     className?: string;
     markClassName?: string;
     label?: string;
 };
 
+/**
+ * Softrly mark: a bold, verified check — the signature of a completed
+ * attendance check-in. Stroked so it works on any surface.
+ */
 export function SoftrlyMark({ className }: { className?: string }) {
     return (
         <svg
@@ -23,25 +27,13 @@ export function SoftrlyMark({ className }: { className?: string }) {
             className={className}
         >
             <path
-                d="M8 10.5c3.2-3.1 8.4-3.4 12.1-.7 1.8 1.3 3 3.2 3.4 5.3"
+                d="M7.5 17.2 13 22.6 24.5 9.4"
                 stroke="currentColor"
-                strokeWidth="2.4"
+                strokeWidth="3.6"
                 strokeLinecap="round"
+                strokeLinejoin="round"
             />
-            <path
-                d="M24 21.5c-3.2 3.1-8.4 3.4-12.1.7-1.8-1.3-3-3.2-3.4-5.3"
-                stroke="currentColor"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-            />
-            <circle cx="10.5" cy="17.5" r="2.2" fill="currentColor" />
-            <circle cx="21.5" cy="14.5" r="2.2" fill="currentColor" />
-            <path
-                d="M14.2 16h3.6"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-            />
+            <circle cx="24.5" cy="24.2" r="2" fill="currentColor" />
         </svg>
     );
 }
@@ -53,7 +45,7 @@ const toneClass: Record<LogoTone, string> = {
 };
 
 const markToneClass: Record<LogoTone, string> = {
-    default: 'bg-primary text-primary-foreground',
+    default: 'bg-primary text-primary-foreground shadow-sm',
     inverse: 'bg-white/15 text-white ring-1 ring-white/20',
     muted: 'bg-muted text-foreground',
 };
@@ -77,12 +69,12 @@ export function SoftrlyLogo({
             {variant !== 'wordmark' ? (
                 <span
                     className={cn(
-                        'flex size-8 shrink-0 items-center justify-center rounded-lg',
+                        'flex size-8 shrink-0 items-center justify-center rounded-[10px]',
                         markToneClass[tone],
                         markClassName,
                     )}
                 >
-                    <SoftrlyMark className="size-4" />
+                    <SoftrlyMark className="size-[18px]" />
                 </span>
             ) : null}
             {variant !== 'mark' ? (
@@ -103,7 +95,10 @@ export function SoftrlyLogo({
     }
 
     return (
-        <Link href={href} className="inline-flex items-center outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md">
+        <Link
+            href={href}
+            className="rounded-md inline-flex items-center outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
             {content}
         </Link>
     );

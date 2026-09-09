@@ -15,7 +15,12 @@ import {
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import type { NavGroup, NavItem } from '@/types';
 
-const alwaysOpenTitles = new Set(['Overview', 'My day', 'Platform', 'Customers']);
+const alwaysOpenTitles = new Set([
+    'Overview',
+    'My attendance',
+    'Platform',
+    'Customers',
+]);
 
 function isNavItemActive(
     item: NavItem,
@@ -54,14 +59,14 @@ function NavGroupSection({ group }: { group: NavGroup }) {
         >
             <SidebarGroup className="px-2 py-1">
                 <SidebarGroupLabel asChild>
-                    <CollapsibleTrigger className="text-sidebar-foreground/55 flex w-full cursor-pointer items-center text-[11px] font-semibold tracking-wider uppercase">
+                    <CollapsibleTrigger className="text-sidebar-foreground/45 flex w-full cursor-pointer items-center text-[10.5px] font-semibold tracking-[0.08em] uppercase">
                         {group.title}
-                        <ChevronDown className="ml-auto size-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                        <ChevronDown className="ml-auto size-3.5 transition-transform group-data-[state=open]/collapsible:rotate-180" />
                     </CollapsibleTrigger>
                 </SidebarGroupLabel>
                 <CollapsibleContent>
                     <SidebarGroupContent>
-                        <SidebarMenu>
+                        <SidebarMenu className="gap-1">
                             {group.items.map((item) => (
                                 <SidebarMenuItem key={`${group.title}-${item.title}`}>
                                     <SidebarMenuButton
@@ -72,7 +77,7 @@ function NavGroupSection({ group }: { group: NavGroup }) {
                                             isCurrentOrParentUrl,
                                         )}
                                         tooltip={{ children: item.title }}
-                                        className="data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:hover:bg-primary/10 data-[active=true]:hover:text-primary"
+                                        className="data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[active=true]:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)] data-[active=true]:hover:bg-sidebar-accent data-[active=true]:hover:text-sidebar-accent-foreground"
                                     >
                                         <Link href={item.href} prefetch>
                                             {item.icon && <item.icon />}
@@ -80,7 +85,9 @@ function NavGroupSection({ group }: { group: NavGroup }) {
                                         </Link>
                                     </SidebarMenuButton>
                                     {item.badge ? (
-                                        <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
+                                        <SidebarMenuBadge className="bg-primary/15 text-sidebar-foreground group-data-[active=true]:bg-sidebar-accent">
+                                            {item.badge}
+                                        </SidebarMenuBadge>
                                     ) : null}
                                 </SidebarMenuItem>
                             ))}

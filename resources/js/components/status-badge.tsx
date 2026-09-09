@@ -15,19 +15,39 @@ const toneMap: Record<string, BadgeVariant> = {
     completed: 'success',
     processed: 'success',
     deducted: 'success',
+    online: 'success',
     unpaid: 'warning',
     late: 'warning',
     pending: 'warning',
     draft: 'secondary',
     trial: 'warning',
-    absent: 'destructive',
+    suspicious: 'destructive',
+    blocked: 'destructive',
     rejected: 'destructive',
     expired: 'destructive',
     suspended: 'destructive',
-    leave: 'info',
-    cancelled: 'outline',
+    absent: 'destructive',
+    offline: 'secondary',
     inactive: 'secondary',
+    not_checked_in: 'secondary',
+    cancelled: 'outline',
+    leave: 'info',
+    half_day: 'info',
 };
+
+const knownStatuses = new Set([
+    'present',
+    'on_time',
+    'late',
+    'leave',
+    'absent',
+    'holiday',
+    'weekend',
+    'half_day',
+    'work_from_home',
+    'manual',
+    'not_checked_in',
+]);
 
 const attendanceLabels: Record<string, string> = {
     present: 'On time',
@@ -35,6 +55,12 @@ const attendanceLabels: Record<string, string> = {
     late: 'Late',
     leave: 'Leave',
     absent: 'Absent',
+    holiday: 'Holiday',
+    weekend: 'Weekly off',
+    half_day: 'Half day',
+    work_from_home: 'Work from home',
+    manual: 'Manual',
+    not_checked_in: 'Not checked in',
 };
 
 export function StatusBadge({
@@ -52,7 +78,7 @@ export function StatusBadge({
     const variant = toneMap[key] ?? 'secondary';
     const visual = attendanceVisual(key);
     const Icon = visual.icon;
-    const showIcon = withIcon && key in attendanceLabels;
+    const showIcon = withIcon && knownStatuses.has(key);
 
     return (
         <Badge variant={variant} className={cn('capitalize', className)}>

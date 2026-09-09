@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/page-header';
 import { PageShell } from '@/components/page-shell';
 import { Pagination, type Paginated } from '@/components/pagination';
 import { PersonIdentity } from '@/components/person-identity';
+import { ResultsCount, TableToolbar } from '@/components/table-toolbar';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -39,8 +40,6 @@ type Props = {
     statuses: { value: string; label: string }[];
 };
 
-const fieldClass = 'border-input h-9 rounded-md border px-3 text-sm';
-
 export default function LeaveApplications({ requests, filters, employees, statuses }: Props) {
     return (
         <>
@@ -56,37 +55,58 @@ export default function LeaveApplications({ requests, filters, employees, status
                     }
                 />
 
-                <form
-                    className="grid gap-2 md:grid-cols-5"
-                    onSubmit={(event) => {
-                        event.preventDefault();
-                        router.get('/leave/applications', Object.fromEntries(new FormData(event.currentTarget)));
-                    }}
-                >
-                    <DatePicker name="from" defaultValue={filters.from ?? ''} placeholder="From" />
-                    <DatePicker name="to" defaultValue={filters.to ?? ''} placeholder="To" />
-                    <select
-                        name="employee_id"
-                        defaultValue={filters.employee_id ?? ''}
-                        className={fieldClass}
+                <TableToolbar>
+                    <form
+                        className="flex min-w-0 flex-1 flex-wrap items-center gap-2"
+                        onSubmit={(event) => {
+                            event.preventDefault();
+                            router.get(
+                                '/leave/applications',
+                                Object.fromEntries(new FormData(event.currentTarget)),
+                            );
+                        }}
                     >
-                        <option value="">All people</option>
-                        {employees.map((employee) => (
-                            <option key={employee.id} value={employee.id}>
-                                {employee.first_name} {employee.last_name} ({employee.employee_code})
-                            </option>
-                        ))}
-                    </select>
-                    <select name="status" defaultValue={filters.status ?? ''} className={fieldClass}>
-                        <option value="">All statuses</option>
-                        {statuses.map((status) => (
-                            <option key={status.value} value={status.value}>
-                                {status.label}
-                            </option>
-                        ))}
-                    </select>
-                    <Button type="submit">Filter</Button>
-                </form>
+                        <div className="w-36">
+                            <DatePicker name="from" defaultValue={filters.from ?? ''} placeholder="From" />
+                        </div>
+                        <div className="w-36">
+                            <DatePicker name="to" defaultValue={filters.to ?? ''} placeholder="To" />
+                        </div>
+                        <select
+                            name="employee_id"
+                            defaultValue={filters.employee_id ?? ''}
+                            className="border-input bg-background h-9 rounded-md border px-2 text-sm outline-none focus:ring-2 focus:ring-ring/40"
+                        >
+                            <option value="">All people</option>
+                            {employees.map((employee) => (
+                                <option key={employee.id} value={employee.id}>
+                                    {employee.first_name} {employee.last_name} (
+                                    {employee.employee_code})
+                                </option>
+                            ))}
+                        </select>
+                        <select
+                            name="status"
+                            defaultValue={filters.status ?? ''}
+                            className="border-input bg-background h-9 rounded-md border px-2 text-sm outline-none focus:ring-2 focus:ring-ring/40"
+                        >
+                            <option value="">All statuses</option>
+                            {statuses.map((status) => (
+                                <option key={status.value} value={status.value}>
+                                    {status.label}
+                                </option>
+                            ))}
+                        </select>
+                        <Button type="submit" variant="secondary" size="sm" className="h-9">
+                            Filter
+                        </Button>
+                    </form>
+                    <ResultsCount
+                        total={requests.total ?? requests.data.length}
+                        from={requests.from}
+                        to={requests.to}
+                    />
+                </TableToolbar>
 
                 {requests.data.length === 0 ? (
                     <div className="rounded-xl border">

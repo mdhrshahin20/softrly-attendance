@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(npm:*)",
+      "Shell(grep:*)",
+      "Shell(php -l app/Http/Controllers/Tenant/DashboardController.php)",
+      "Shell(for:*)",
+      "Shell(do:*)",
+      "Shell(sed:*)",
+      "Shell(done:*)",
+      "Shell(vendor/bin/pint:*)",
+      "Shell(cat:*)",
+      "Shell(python3 -c import json,sys; d=json.load(sys.stdin); print(d.get('name'), d.get('bin')))",
+      "Shell(ls:*)",
+      "Shell(mv:*)",
+      "Shell(rm -rf node_modules && CI=1 pnpm install 2>&1 | tail -6; ls node_modules/vite-plus/bin 2>/dev/null; ls node_modules/.bin | grep -E \"^vp\")",
+      "Shell(NODE_ENV=development CI=1 pnpm install 2>&1 | tail -6; ls node_modules/vite-plus/bin 2>/dev/null; ls node_modules/.bin | grep -E \"^vp\")",
+      "Shell(pnpm:*)"
+    ],
+    "deny": [],
+    "defaultMode": "default"
+  }
+}

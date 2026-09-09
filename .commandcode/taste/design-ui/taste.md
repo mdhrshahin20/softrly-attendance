@@ -1,0 +1,29 @@
+# UI/UX & Design Tastes
+
+- Aims for a premium commercial SaaS feel (references Linear, Stripe, Vercel, Notion, Ramp, Deel) and explicitly rejects generic Bootstrap / "Laravel admin template" aesthetics. Confidence: 0.95
+- Dislikes garish or over-saturated topbar/navbar colors; wants simple, professional, restrained color ("header color is disgusting — make it simple, beautiful, professional"). Confidence: 0.9
+- Prefers a centralized design-token system (semantic colors, spacing, radius, typography, shadows) over hardcoded random values scattered across components; uses color sparingly and avoids heavy gradients, shadows, glassmorphism, and saturated badges. Confidence: 0.9
+- Status indicators (Present, Late, Absent, On Leave, etc.) must communicate with color AND icon/label/text — never color alone. Confidence: 0.85
+- Prefers one consistent component/icon kit used everywhere (e.g., shadcn calendar and time pickers everywhere; Lucide icons) rather than mixed or ad-hoc per-page widgets. Confidence: 0.85
+- Sidebar/navigation should be grouped into labeled sections (Overview, People, Attendance, Leave, Workforce, Settings...) and polished as a first-class component, not a flat list. Confidence: 0.8
+- Every managed entity needs full CRUD from the UI — missing edit/delete on shifts, offices, departments, designations, etc. is treated as a bug. Confidence: 0.9
+- Destructive actions (delete, etc.) must always ask for confirmation via a clearly danger-styled modal. Confidence: 0.9
+- Every list page should support search, filters, and pagination; unbounded lists are not acceptable. Confidence: 0.85
+- Form inputs must always have clear labels; unlabeled inputs are considered unusable. Confidence: 0.9
+- The logged-in user's avatar and name should appear consistently (topbar, dropdowns) so identity is obvious at a glance. Confidence: 0.8
+- Prefers list → detail/configure layouts for management modules (tenants, plans, payment gateways), with each item configured individually (e.g., per-gateway configure page with its own live/sandbox mode) rather than a single dropdown or one page crammed with everything. Confidence: 0.85
+- Avoids duplicate navigation entries that lead to the same place (e.g., don't show Profile and Settings separately when they are the same page). Confidence: 0.6
+- Settings/config fields should be shown conditionally — when a mode or feature is inactive (e.g., location-based attendance), its config UI should not appear. Confidence: 0.6
+- Employee-facing screens must not expose technical IP/network details; show friendly, plain-language status messages instead. Confidence: 0.85
+- Every page needs proper loading states (skeletons), meaningful empty states with a next action, and friendly error states with retry — never blank tables, full-screen spinners, or raw exceptions. Confidence: 0.9
+- UI must run on real data only — no fake production numbers; when an endpoint doesn't exist yet, build the component so it can accept real data later instead of hardcoding. Confidence: 0.9
+- Navigation and visible actions must follow the user's permissions rather than a hardcoded role assumption (e.g., an Employee must not see admin reports or other employees' attendance data). Confidence: 0.9
+- Subscription/plan limits should be surfaced proactively in the UI (usage like "42/50 employees" with an upgrade action) so users aren't surprised by errors after the fact. Confidence: 0.75
+- Modals are for confirmations and small/quick forms; complex forms, settings, and onboarding belong on full pages. Confidence: 0.7
+- Keeps accessibility (keyboard navigation, focus states, contrast, semantic HTML) and intentional mobile behavior — mobile should not just be a shrunken desktop. Confidence: 0.8
+- Drawers (side sheets) are for detail views (employee/attendance/leave/day details, corrections); modals are reserved for confirmations, approvals, deletes, and short forms — avoid oversized modal windows. Confidence: 0.75
+- Data tables should be dense and scannable: sticky headers where useful, row hover, status badges, and per-row actions in a clean dropdown action menu rather than cluttering every row with multiple visible buttons; bulk selection/column visibility where useful. Confidence: 0.75
+- Typography: a modern professional sans (Inter/Manrope/Geist class) with a small, disciplined type scale and clear hierarchy (page/section/card/body/caption/meta) — "do not use too many font sizes." Confidence: 0.75
+- Dashboard KPI cards stay compact (not oversized) and show current value + small trend vs. previous period, and each card is clickable through to the corresponding filtered data view. Confidence: 0.8
+- Analytics charts are real chart components with legends, tooltips, and empty/loading states — and avoid decorative chart clutter (only status, important actions, alerts, charts, and selected states use color). Confidence: 0.7
+- Interactions and animations must be subtle and fast (hover/focus/active/selected states, smooth dropdowns/drawers/modals, toasts, button loading) — no excessive or random animation; respect reduced motion. Confidence: 0.7

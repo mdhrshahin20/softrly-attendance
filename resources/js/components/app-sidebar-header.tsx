@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Bell, CircleHelp, CreditCard, LogOut, Settings, UserRound } from 'lucide-react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { CommandTrigger } from '@/components/command-menu';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -34,6 +35,8 @@ export function AppSidebarHeader({
             </div>
 
             <div className="flex items-center gap-1.5">
+                <CommandTrigger />
+
                 <Button
                     variant="ghost"
                     size="icon"

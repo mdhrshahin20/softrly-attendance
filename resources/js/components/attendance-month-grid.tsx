@@ -18,11 +18,13 @@ export function AttendanceMonthGrid({
     year,
     days,
     compact = false,
+    onDayClick,
 }: {
     month: number;
     year: number;
     days: AttendanceDay[];
     compact?: boolean;
+    onDayClick?: (day: AttendanceDay) => void;
 }) {
     const first = new Date(year, month - 1, 1);
     const pad = first.getDay();
@@ -41,19 +43,13 @@ export function AttendanceMonthGrid({
                 {days.map((day) => {
                     const visual = attendanceVisual(day.status);
                     const Icon = visual.icon;
-
-                    return (
-                        <div
-                            key={day.date}
-                            className={cn(
-                                'rounded-lg border p-2 text-left',
-                                compact ? 'min-h-20' : 'min-h-24',
-                                day.status ? visual.cell : 'bg-card',
-                            )}
-                        >
+                    const cell = (
+                        <>
                             <div className="flex items-center justify-between gap-1">
                                 <span className="text-sm font-semibold">{day.day}</span>
-                                {day.status ? <Icon className="size-3.5 shrink-0 opacity-80" /> : null}
+                                {day.status ? (
+                                    <Icon className="size-3.5 shrink-0 opacity-80" />
+                                ) : null}
                             </div>
                             {day.status ? (
                                 <div className="mt-1.5 text-[11px] leading-tight font-medium">
@@ -72,8 +68,41 @@ export function AttendanceMonthGrid({
                                 </div>
                             ) : null}
                             {day.label ? (
-                                <div className="mt-1 truncate text-[11px] opacity-80">{day.label}</div>
+                                <div className="mt-1 truncate text-[11px] opacity-80">
+                                    {day.label}
+                                </div>
                             ) : null}
+                        </>
+                    );
+
+                    if (onDayClick) {
+                        return (
+                            <button
+                                key={day.date}
+                                type="button"
+                                onClick={() => onDayClick(day)}
+                                aria-label={`${day.date}${day.status ? `, ${visual.label}` : ''}. View details`}
+                                className={cn(
+                                    'rounded-lg border p-2 text-left outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/60 hover:ring-1 hover:ring-foreground/10',
+                                    compact ? 'min-h-20' : 'min-h-24',
+                                    day.status ? visual.cell : 'bg-card',
+                                )}
+                            >
+                                {cell}
+                            </button>
+                        );
+                    }
+
+                    return (
+                        <div
+                            key={day.date}
+                            className={cn(
+                                'rounded-lg border p-2 text-left',
+                                compact ? 'min-h-20' : 'min-h-24',
+                                day.status ? visual.cell : 'bg-card',
+                            )}
+                        >
+                            {cell}
                         </div>
                     );
                 })}

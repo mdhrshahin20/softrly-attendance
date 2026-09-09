@@ -68,17 +68,37 @@ export default function LeaveIndex({ requests, balances, types, durationTypes }:
                 />
 
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                    {balances.map((balance) => (
-                        <div key={balance.id} className="bg-card rounded-xl border p-4">
-                            <div className="text-muted-foreground text-sm">{balance.leave_type}</div>
-                            <div className="mt-1 text-2xl font-semibold tracking-tight">
-                                {balance.remaining}
+                    {balances.map((balance) => {
+                        const pct = Math.min(
+                            100,
+                            Math.round((balance.remaining / Math.max(1, balance.allocated)) * 100),
+                        );
+
+                        return (
+                            <div key={balance.id} className="bg-card rounded-xl border p-4">
+                                <div className="text-muted-foreground text-sm">
+                                    {balance.leave_type}
+                                </div>
+                                <div className="mt-1 flex items-baseline gap-1.5">
+                                    <span className="text-2xl font-semibold tracking-tight tabular-nums">
+                                        {balance.remaining}
+                                    </span>
+                                    <span className="text-muted-foreground text-xs">
+                                        of {balance.allocated} days
+                                    </span>
+                                </div>
+                                <div className="bg-muted mt-3 h-1.5 overflow-hidden rounded-full">
+                                    <div
+                                        className="bg-primary h-full rounded-full"
+                                        style={{ width: `${pct}%` }}
+                                    />
+                                </div>
+                                <div className="text-muted-foreground mt-1.5 text-xs tabular-nums">
+                                    {balance.used} used · {balance.pending} pending
+                                </div>
                             </div>
-                            <div className="text-muted-foreground mt-1 text-xs">
-                                {balance.used} used · {balance.pending} pending · {balance.allocated} allocated
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 <div className="bg-card rounded-xl border p-5 md:p-6">

@@ -9,7 +9,7 @@ export function DataTable({
     className?: string;
 }) {
     return (
-        <div className={cn('overflow-hidden rounded-xl border', className)}>
+        <div className={cn('overflow-hidden rounded-xl border bg-card', className)}>
             <div className="overflow-x-auto">
                 <table className="app-table">{children}</table>
             </div>
