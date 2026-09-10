@@ -13,6 +13,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Link } from '@inertiajs/react';
+import { formatClock } from '@/lib/timezone';
 import { cn } from '@/lib/utils';
 
 export type LiveRow = {
@@ -29,14 +30,7 @@ export type LiveRow = {
 };
 
 function formatTime(value?: string | null): string {
-    if (!value) {
-        return '—';
-    }
-
-    return new Date(value).toLocaleTimeString([], {
-        hour: 'numeric',
-        minute: '2-digit',
-    });
+    return formatClock(value);
 }
 
 type SortKey = 'name' | 'check_in';

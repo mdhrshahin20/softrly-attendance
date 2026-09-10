@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { TimePicker } from '@/components/ui/time-picker';
+import { formatClock } from '@/lib/timezone';
 
 type RecordRow = {
     id: number;
@@ -161,8 +162,8 @@ export default function AttendanceReport({ records, filters, employees, departme
                                     <td className="px-4 py-3">
                                         <StatusBadge status={record.status} />
                                     </td>
-                                    <td className="px-4 py-3">{record.check_in_at ? new Date(record.check_in_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
-                                    <td className="px-4 py-3">{record.check_out_at ? new Date(record.check_out_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                                    <td className="px-4 py-3">{formatClock(record.check_in_at)}</td>
+                                    <td className="px-4 py-3">{formatClock(record.check_out_at)}</td>
                                     <td className="px-4 py-3">{record.late_minutes}</td>
                                 </tr>
                             ))}

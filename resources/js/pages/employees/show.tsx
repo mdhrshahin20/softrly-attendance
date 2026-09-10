@@ -29,6 +29,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { DataTable } from '@/components/data-table';
 import { cn } from '@/lib/utils';
 import { parseISODate, toISODate } from '@/lib/datetime';
+import { clockToMinutes, formatClock } from '@/lib/timezone';
 
 type Employee = {
     id: number;
@@ -106,13 +107,24 @@ function averageCheckIn(days: Day[]): string | null {
     }
 
     let total = 0;
+    let counted = 0;
 
     for (const day of withTime) {
-        const date = new Date(day.check_in_at as string);
-        total += date.getHours() * 60 + date.getMinutes();
+        const minutes = clockToMinutes(day.check_in_at);
+
+        if (minutes === null) {
+            continue;
+        }
+
+        total += minutes;
+        counted += 1;
     }
 
-    const avg = Math.round(total / withTime.length);
+    if (counted === 0) {
+        return null;
+    }
+
+    const avg = Math.round(total / counted);
     const hours = Math.floor(avg / 60);
     const minutes = avg % 60;
 
@@ -127,14 +139,7 @@ function formatHours(minutes: number): string {
 }
 
 function formatDayTime(value: string | null): string {
-    if (!value) {
-        return '—';
-    }
-
-    return new Date(value).toLocaleTimeString([], {
-        hour: 'numeric',
-        minute: '2-digit',
-    });
+    return formatClock(value);
 }
 
 const tabs: { key: TabKey; label: string }[] = [

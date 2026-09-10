@@ -74,6 +74,7 @@ class PlanCatalog
                     PlanFeature::MultipleOffices,
                     PlanFeature::CustomRoles,
                     PlanFeature::AuditLog,
+                    PlanFeature::FaceVerification,
                     PlanFeature::Payroll,
                 ],
             ],

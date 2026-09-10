@@ -65,6 +65,11 @@ test('tenant admins see who is late and who is on leave', function () {
     $workspace['tenant']->makeCurrent();
     setPermissionsTeamId($workspace['tenant']->id);
 
+    // Attendance rows are dated in the workspace timezone, which is how the
+    // dashboard looks them up. Using the app default here would disagree with
+    // the request whenever the workspace has already rolled over to the next day.
+    $today = now($workspace['tenant']->timezone)->toDateString();
+
     $lateUser = User::factory()->create(['current_tenant_id' => $workspace['tenant']->id]);
     $leaveUser = User::factory()->create(['current_tenant_id' => $workspace['tenant']->id]);
     $workspace['tenant']->users()->attach([$lateUser->id, $leaveUser->id]);
@@ -103,9 +108,9 @@ test('tenant admins see who is late and who is on leave', function () {
         'tenant_id' => $workspace['tenant']->id,
         'employee_id' => $lateEmployee->id,
         'office_id' => $lateEmployee->office_id,
-        'attendance_date' => now()->toDateString(),
+        'attendance_date' => $today,
         'status' => AttendanceStatus::Late,
-        'check_in_at' => now()->setTime(10, 15),
+        'check_in_at' => now($workspace['tenant']->timezone)->setTime(10, 15),
         'late_minutes' => 25,
     ]);
 
@@ -113,7 +118,7 @@ test('tenant admins see who is late and who is on leave', function () {
         'tenant_id' => $workspace['tenant']->id,
         'employee_id' => $leaveEmployee->id,
         'office_id' => $leaveEmployee->office_id,
-        'attendance_date' => now()->toDateString(),
+        'attendance_date' => $today,
         'status' => AttendanceStatus::Leave,
     ]);
 

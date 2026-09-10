@@ -36,7 +36,32 @@ class SetCurrentTenant
             Tenant::forgetCurrent();
         }
 
+        // Attendance times are stored as the workspace's wall-clock time, so the
+        // whole request has to run in that zone. Without this, a stored 02:41 is
+        // read as 02:41 UTC, which both shifts every displayed time and makes
+        // duration maths (work minutes, overtime, late) wrong.
+        $this->applyTimezone($tenant?->timezone);
+
         return $next($request);
+    }
+
+    /**
+     * Run the request in the workspace's timezone, falling back to the app default.
+     */
+    private function applyTimezone(?string $timezone): void
+    {
+        $fallback = (string) config('app.timezone', 'UTC');
+
+        if ($timezone === null || ! in_array($timezone, timezone_identifiers_list(), true)) {
+            $timezone = $fallback;
+        }
+
+        if (date_default_timezone_get() === $timezone && config('app.timezone') === $timezone) {
+            return;
+        }
+
+        config(['app.timezone' => $timezone]);
+        date_default_timezone_set($timezone);
     }
 
     private function resolveTenant(Request $request): ?Tenant

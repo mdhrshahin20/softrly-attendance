@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Domain\Attendance\Services\FaceVerificationService;
 use App\Domain\Billing\Services\SubscriptionService;
 use App\Domain\Platform\Services\PlatformSettingsService;
 use App\Domain\Tenant\Models\Tenant;
@@ -18,6 +19,34 @@ class HandleInertiaRequests extends Middleware
     public function version(Request $request): ?string
     {
         return parent::version($request);
+    }
+
+    /**
+     * Face verification state for the frontend.
+     *
+     * The enrolment lookup only runs when the tenant has the feature switched on
+     * and the visitor is an employee, so most requests pay nothing.
+     *
+     * @return array{required: bool, enrolled: bool, threshold: float}
+     */
+    private function faceState(Request $request): array
+    {
+        $user = $request->user();
+        $faces = app(FaceVerificationService::class);
+
+        $required = false;
+        $enrolled = false;
+
+        if ($user !== null && Tenant::current() !== null && $faces->isEnabled()) {
+            $required = true;
+            $enrolled = $user->employee !== null && $faces->isEnrolled($user);
+        }
+
+        return [
+            'required' => $required,
+            'enrolled' => $enrolled,
+            'threshold' => $required ? $faces->threshold() : FaceVerificationService::DEFAULT_THRESHOLD,
+        ];
     }
 
     /**
@@ -77,8 +106,11 @@ class HandleInertiaRequests extends Middleware
                 'apiAccess' => ($user?->can('settings.manage') ?? false) && in_array('api_access', $subscription['features'] ?? [], true),
                 'customDomain' => ($user?->can('settings.manage') ?? false) && in_array('custom_domain', $subscription['features'] ?? [], true),
                 'locationAttendance' => in_array('location_attendance', $subscription['features'] ?? [], true),
+                'faceVerification' => in_array('face_verification', $subscription['features'] ?? [], true),
                 'platform' => $user?->is_platform_admin ?? false,
             ],
+            // Face verification state is only computed when the tenant has it switched on.
+            'face' => $this->faceState($request),
             'unreadNotifications' => $user?->unreadNotifications()->count() ?? 0,
             'recentNotifications' => $user
                 ? $user->notifications()

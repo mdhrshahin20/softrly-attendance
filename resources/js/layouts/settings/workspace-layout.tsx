@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { CalendarDays, Globe, KeyRound, MapPin, UserRound, type LucideIcon } from 'lucide-react';
+import { CalendarDays, Clock3, Globe, KeyRound, MapPin, UserRound, type LucideIcon } from 'lucide-react';
 import type { PropsWithChildren } from 'react';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ export default function WorkspaceSettingsLayout({ children }: PropsWithChildren)
 
     const entries: Array<SettingsItem & { gate?: boolean }> = [
         { gate: can?.manageSettings, title: 'Attendance mode', href: '/settings/attendance', icon: MapPin },
+        { gate: can?.manageSettings, title: 'Time zone', href: '/settings/timezone', icon: Clock3 },
         { gate: can?.manageSettings, title: 'Working days', href: '/working-days', icon: CalendarDays },
         { gate: can?.customDomain, title: 'Custom domain', href: '/settings/domains', icon: Globe },
         { gate: can?.apiAccess, title: 'API tokens', href: '/settings/api-tokens', icon: KeyRound },

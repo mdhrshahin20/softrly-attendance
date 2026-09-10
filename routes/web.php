@@ -31,6 +31,7 @@ use App\Http\Controllers\Tenant\DomainController;
 use App\Http\Controllers\Tenant\EmployeeController;
 use App\Http\Controllers\Tenant\EmployeeImportController;
 use App\Http\Controllers\Tenant\EmployeeSalaryController;
+use App\Http\Controllers\Tenant\FaceEnrolmentController;
 use App\Http\Controllers\Tenant\HolidayController;
 use App\Http\Controllers\Tenant\LeaveApprovalController;
 use App\Http\Controllers\Tenant\LeaveRequestController;
@@ -43,6 +44,7 @@ use App\Http\Controllers\Tenant\RoleController;
 use App\Http\Controllers\Tenant\SalaryAdvanceController;
 use App\Http\Controllers\Tenant\SalaryReportController;
 use App\Http\Controllers\Tenant\ShiftController;
+use App\Http\Controllers\Tenant\TimezoneController;
 use App\Http\Controllers\Tenant\WorkingDayController;
 use Illuminate\Support\Facades\Route;
 
@@ -68,6 +70,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified', 'tenant', 'tenant.session'])->group(function () {
+    // Face enrolment sits outside the subscription gate so an employee can always
+    // view or delete their biometric data, even when a plan has lapsed.
+    Route::get('face', [FaceEnrolmentController::class, 'edit'])->name('face.edit');
+    Route::post('face', [FaceEnrolmentController::class, 'store'])->name('face.store');
+    // Live verification polls as the employee looks at the camera, so it is
+    // throttled to keep a misbehaving client from hammering the server.
+    Route::post('face/verify', [FaceEnrolmentController::class, 'verify'])
+        ->middleware('throttle:60,1')
+        ->name('face.verify');
+    Route::delete('face', [FaceEnrolmentController::class, 'destroy'])->name('face.destroy');
+    Route::get('face/photo', [FaceEnrolmentController::class, 'photo'])->name('face.photo');
+
     Route::get('billing', [BillingController::class, 'index'])->name('billing.index');
     Route::post('billing/subscribe', [BillingController::class, 'subscribe'])->name('billing.subscribe');
     Route::post('billing/cancel', [BillingController::class, 'cancel'])->name('billing.cancel');
@@ -133,6 +147,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.session'])->group(funct
 
         Route::get('settings/attendance', [AttendanceSettingsController::class, 'index'])->name('settings.attendance');
         Route::put('settings/attendance', [AttendanceSettingsController::class, 'update'])->name('settings.attendance.update');
+
+        Route::get('settings/timezone', [TimezoneController::class, 'index'])->name('settings.timezone');
+        Route::put('settings/timezone', [TimezoneController::class, 'update'])->name('settings.timezone.update');
 
         Route::get('devices', [DeviceController::class, 'index'])->name('devices.index');
         Route::post('devices/{device}/trust', [DeviceController::class, 'trust'])->name('devices.trust');

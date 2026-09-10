@@ -58,6 +58,9 @@ class AttendanceService
                 'check_in_device_id' => $authorized['device']['device_id'],
                 'check_in_latitude' => $request->input('latitude'),
                 'check_in_longitude' => $request->input('longitude'),
+                'check_in_face_score' => $authorized['face']['score'],
+                'check_in_face_verified_at' => $authorized['face']['required'] ? $now : null,
+                'check_in_selfie_path' => $authorized['face']['selfie_path'],
                 'status' => $status,
                 'late_minutes' => $lateMinutes,
                 'check_in_method' => $authorized['method'],
@@ -104,6 +107,9 @@ class AttendanceService
             'check_out_device_id' => $authorized['device']['device_id'],
             'check_out_latitude' => $request->input('latitude'),
             'check_out_longitude' => $request->input('longitude'),
+            'check_out_face_score' => $authorized['face']['score'],
+            'check_out_face_verified_at' => $authorized['face']['required'] ? $now : null,
+            'check_out_selfie_path' => $authorized['face']['selfie_path'],
             'work_minutes' => $workMinutes,
             'early_leave_minutes' => $earlyLeave,
             'overtime_minutes' => $overtime,
@@ -229,7 +235,10 @@ class AttendanceService
 
     public function today(Employee $employee): CarbonImmutable
     {
-        return now($employee->office?->timezone ?: $this->timezone())->startOfDay();
+        // Stored attendance times are wall-clock in the workspace timezone, so
+        // "today" must be resolved in that same zone. Using a per-office zone
+        // here would make a record's date and its stored time disagree.
+        return now($this->timezone())->startOfDay();
     }
 
     private function timezone(): string

@@ -1,4 +1,4 @@
-import { Form, Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     BarChart3,
     Building2,
@@ -8,13 +8,14 @@ import {
     Clock3,
     ExternalLink,
     Palmtree,
+    ScanFace,
     TriangleAlert,
     Users,
     Wifi,
     XCircle,
     type LucideIcon,
 } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
     AttendanceLiveTable,
     type LiveRow,
@@ -22,6 +23,7 @@ import {
 import { StatusLegend, StatusTrendChart } from '@/components/charts/status-trend-chart';
 import { EmptyState } from '@/components/empty-state';
 import { ErrorState, RetryButton } from '@/components/error-state';
+import { FaceCameraPreview } from '@/components/face-camera-preview';
 import { MetricCard, type TrendTone } from '@/components/metric-card';
 import { NetworkStatus } from '@/components/network-status';
 import { PageHeader } from '@/components/page-header';
@@ -43,9 +45,12 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { Spinner } from '@/components/ui/spinner';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useDeviceId } from '@/hooks/use-device-id';
+import { useFaceCamera, type FaceCapture } from '@/hooks/use-face-camera';
 import { useGeolocation } from '@/hooks/use-geolocation';
+import { verifyFaceDescriptor } from '@/lib/face-verify';
 import { dashboard } from '@/routes';
 import { toISODate } from '@/lib/datetime';
+import { formatClock } from '@/lib/timezone';
 import { cn } from '@/lib/utils';
 
 type TodayAttendance = {
@@ -171,6 +176,14 @@ type Props = {
     officeStatus: OfficeStatus[];
 };
 
+type FacePhase = 'off' | 'searching' | 'verifying' | 'verified' | 'retry';
+
+/** Which attendance action the employee started, or null when idle. */
+type FaceIntent = 'check_in' | 'check_out' | null;
+
+/** Cap on automatic face attempts before asking the employee to retry. */
+const MAX_AUTO_ATTEMPTS = 3;
+
 function greeting(): string {
     const hour = new Date().getHours();
 
@@ -186,14 +199,7 @@ function greeting(): string {
 }
 
 function formatTime(value: string | null): string {
-    if (!value) {
-        return '—';
-    }
-
-    return new Date(value).toLocaleTimeString([], {
-        hour: 'numeric',
-        minute: '2-digit',
-    });
+    return formatClock(value);
 }
 
 function formatMinutes(minutes: number): string {
@@ -703,18 +709,223 @@ function CheckInPanel({
     network,
     attendancePolicy,
     canMarkAttendance,
+    face,
 }: Pick<Props, 'employee' | 'today' | 'network' | 'attendancePolicy'> & {
     canMarkAttendance: boolean;
+    face: { required: boolean; enrolled: boolean; threshold: number };
 }) {
     const deviceId = useDeviceId();
     const geo = useGeolocation(Boolean(attendancePolicy?.requires_location));
+    const faceCamera = useFaceCamera(face.required && face.enrolled);
+
+    /** The action the employee asked for. null means the camera is closed. */
+    const [faceIntent, setFaceIntent] = useState<FaceIntent>(null);
+    const [facePhase, setFacePhase] = useState<FacePhase>('off');
+    const [faceNotice, setFaceNotice] = useState<string | null>(null);
+    const [submitting, setSubmitting] = useState(false);
+    /** Bumped to restart verification in place, e.g. after a failed attempt. */
+    const [faceRunKey, setFaceRunKey] = useState(0);
+
     const checkedIn = Boolean(today?.check_in_at && !today.check_out_at);
     const completed = Boolean(today?.check_in_at && today.check_out_at);
     const networkOk = attendancePolicy?.requires_network ? Boolean(network?.allowed) : true;
     const locationOk = attendancePolicy?.requires_location
         ? Boolean(geo.latitude && geo.longitude)
         : true;
-    const canSubmit = Boolean(employee) && networkOk && locationOk;
+    const prerequisitesOk = Boolean(employee) && networkOk && locationOk;
+    const needsEnrolment = face.required && !face.enrolled;
+    const canStartAttendance = prerequisitesOk && !needsEnrolment && !submitting && faceIntent === null;
+
+    const attempts = useRef(0);
+    const retryTimer = useRef<number | null>(null);
+    const submittingRef = useRef(false);
+
+    const {
+        start: startCamera,
+        autoCapture,
+        cancelWatch,
+        stop: stopCamera,
+    } = faceCamera;
+
+    // Held in a ref so the verification effect does not restart when geolocation
+    // resolves or the device id is generated.
+    const submitRef = useRef<(intent: FaceIntent, shot: FaceCapture | null) => void>(() => undefined);
+
+    submitRef.current = (intent, shot) => {
+        if (intent === null || submittingRef.current) {
+            return;
+        }
+
+        submittingRef.current = true;
+        setSubmitting(true);
+
+        const payload: {
+            device_id: string;
+            latitude?: string;
+            longitude?: string;
+            face_descriptor?: string;
+            face_selfie?: string;
+        } = { device_id: deviceId };
+
+        if (geo.latitude && geo.longitude) {
+            payload.latitude = geo.latitude;
+            payload.longitude = geo.longitude;
+        }
+
+        if (shot !== null) {
+            payload.face_descriptor = JSON.stringify(shot.descriptor);
+            payload.face_selfie = shot.selfie;
+        }
+
+        router.post(
+            intent === 'check_in' ? '/attendance/check-in' : '/attendance/check-out',
+            payload,
+            {
+                onSuccess: () => {
+                    setFaceIntent(null);
+                    setFacePhase('off');
+                    setFaceNotice(null);
+                },
+                onError: (errors) => {
+                    // A server rejection is a business rule (weekly off, network,
+                    // already checked in), not a face problem — close the camera
+                    // and surface the reason next to the buttons.
+                    setFaceIntent(null);
+                    setFacePhase('off');
+                    setFaceNotice(
+                        errors.attendance ?? 'Could not mark attendance. Please try again.',
+                    );
+                    stopCamera();
+                },
+                onFinish: () => {
+                    submittingRef.current = false;
+                    setSubmitting(false);
+                },
+            },
+        );
+    };
+
+    /** Called by the Check in / Check out buttons. */
+    function beginAttendance(intent: Exclude<FaceIntent, null>) {
+        setFaceNotice(null);
+        attempts.current = 0;
+
+        // Nothing to verify — submit straight away.
+        if (!face.required || !face.enrolled) {
+            submitRef.current(intent, null);
+
+            return;
+        }
+
+        setFacePhase('off');
+        setFaceIntent(intent);
+    }
+
+    function retryFaceCheck() {
+        attempts.current = 0;
+        setFaceNotice(null);
+        setFacePhase('off');
+        setFaceRunKey((key) => key + 1);
+    }
+
+    function cancelFaceCheck() {
+        attempts.current = 0;
+        setFaceIntent(null);
+        setFacePhase('off');
+        setFaceNotice(null);
+        // Release the camera; it is only needed while verifying.
+        stopCamera();
+    }
+
+    // The camera opens only once an action is chosen, verifies on its own, then
+    // submits the attendance when the face matches.
+    useEffect(() => {
+        if (faceIntent === null || !face.required || !face.enrolled) {
+            return;
+        }
+
+        let cancelled = false;
+
+        async function run() {
+            if (cancelled) {
+                return;
+            }
+
+            if (attempts.current >= MAX_AUTO_ATTEMPTS) {
+                setFacePhase('retry');
+                setFaceNotice('We could not verify your face. Try again and hold still.');
+
+                return;
+            }
+
+            attempts.current += 1;
+            setFaceNotice(null);
+
+            if (!(await startCamera())) {
+                if (!cancelled) {
+                    setFacePhase('retry');
+                }
+
+                return;
+            }
+
+            if (cancelled) {
+                return;
+            }
+
+            setFacePhase('searching');
+            const shot = await autoCapture();
+
+            if (cancelled || shot === null) {
+                return;
+            }
+
+            setFacePhase('verifying');
+            const result = await verifyFaceDescriptor(shot.descriptor);
+
+            if (cancelled) {
+                return;
+            }
+
+            if (result.matched) {
+                setFacePhase('verified');
+                stopCamera();
+                submitRef.current(faceIntent, shot);
+
+                return;
+            }
+
+            setFaceNotice(result.message ?? 'Face did not match. Move closer and hold still.');
+            setFacePhase('searching');
+
+            // Give the employee a moment to adjust before looking again.
+            retryTimer.current = window.setTimeout(() => {
+                void run();
+            }, 1500);
+        }
+
+        void run();
+
+        return () => {
+            cancelled = true;
+
+            if (retryTimer.current !== null) {
+                window.clearTimeout(retryTimer.current);
+                retryTimer.current = null;
+            }
+
+            cancelWatch();
+        };
+    }, [
+        faceIntent,
+        face.required,
+        face.enrolled,
+        faceRunKey,
+        startCamera,
+        autoCapture,
+        cancelWatch,
+        stopCamera,
+    ]);
 
     return (
         <Card>
@@ -783,65 +994,109 @@ function CheckInPanel({
                     </p>
                 ) : null}
 
+                {face.required && !face.enrolled ? (
+                    <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+                        <p className="font-medium">Face verification is required</p>
+                        <p className="mt-1 text-xs leading-5">
+                            Your workspace requires a face check at attendance. Enrol your face
+                            once to continue.
+                        </p>
+                        <Button size="sm" className="mt-3" asChild>
+                            <Link href="/face">
+                                <ScanFace className="size-4" />
+                                Enrol my face
+                            </Link>
+                        </Button>
+                    </div>
+                ) : null}
+
+                {face.required && face.enrolled && faceIntent !== null ? (
+                    <div className="space-y-3 rounded-xl border p-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="text-sm font-medium">
+                                {faceIntent === 'check_in'
+                                    ? 'Verify your face to check in'
+                                    : 'Verify your face to check out'}
+                            </span>
+                            {facePhase === 'verified' ? (
+                                <StatusBadge status="active" label="Face verified" />
+                            ) : facePhase === 'verifying' ? (
+                                <StatusBadge status="pending" label="Verifying…" />
+                            ) : (
+                                <StatusBadge status="pending" label="Look at the camera" />
+                            )}
+                        </div>
+
+                        <FaceCameraPreview
+                            videoRef={faceCamera.videoRef}
+                            status={faceCamera.status}
+                            error={faceCamera.error}
+                            onStart={() => void faceCamera.start()}
+                        />
+
+                        {facePhase === 'retry' ? (
+                            <Button type="button" size="sm" onClick={retryFaceCheck}>
+                                <ScanFace className="size-4" />
+                                Try again
+                            </Button>
+                        ) : (
+                            <p className="text-muted-foreground flex items-center gap-2 text-sm">
+                                <Spinner className="size-3.5" />
+                                {facePhase === 'verifying'
+                                    ? 'Checking your face…'
+                                    : 'Hold still — looking for your face…'}
+                            </p>
+                        )}
+
+                        {faceNotice ? (
+                            <p className="text-destructive text-xs">{faceNotice}</p>
+                        ) : null}
+
+                        <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={cancelFaceCheck}
+                            disabled={submitting}
+                        >
+                            Cancel
+                        </Button>
+                    </div>
+                ) : null}
+
                 <div className="flex flex-wrap gap-2.5">
                     {!checkedIn && !completed && canMarkAttendance ? (
-                        <Form action="/attendance/check-in" method="post" className="inline">
-                            {({ processing, errors }) => (
-                                <>
-                                    <input type="hidden" name="device_id" value={deviceId} />
-                                    {geo.latitude ? (
-                                        <>
-                                            <input type="hidden" name="latitude" value={geo.latitude} />
-                                            <input type="hidden" name="longitude" value={geo.longitude} />
-                                        </>
-                                    ) : null}
-                                    <Button type="submit" disabled={processing || !canSubmit}>
-                                        {processing ? <Spinner /> : null}
-                                        Check in
-                                    </Button>
-                                    {errors.attendance ? (
-                                        <p className="text-destructive mt-2 text-sm">
-                                            {errors.attendance}
-                                        </p>
-                                    ) : null}
-                                </>
-                            )}
-                        </Form>
+                        <Button
+                            type="button"
+                            onClick={() => beginAttendance('check_in')}
+                            disabled={!canStartAttendance}
+                        >
+                            {submitting ? <Spinner /> : null}
+                            Check in
+                        </Button>
                     ) : null}
 
                     {checkedIn && canMarkAttendance ? (
-                        <Form action="/attendance/check-out" method="post" className="inline">
-                            {({ processing, errors }) => (
-                                <>
-                                    <input type="hidden" name="device_id" value={deviceId} />
-                                    {geo.latitude ? (
-                                        <>
-                                            <input type="hidden" name="latitude" value={geo.latitude} />
-                                            <input type="hidden" name="longitude" value={geo.longitude} />
-                                        </>
-                                    ) : null}
-                                    <Button
-                                        type="submit"
-                                        variant="secondary"
-                                        disabled={processing || !canSubmit}
-                                    >
-                                        {processing ? <Spinner /> : null}
-                                        Check out
-                                    </Button>
-                                    {errors.attendance ? (
-                                        <p className="text-destructive mt-2 text-sm">
-                                            {errors.attendance}
-                                        </p>
-                                    ) : null}
-                                </>
-                            )}
-                        </Form>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => beginAttendance('check_out')}
+                            disabled={!canStartAttendance}
+                        >
+                            {submitting ? <Spinner /> : null}
+                            Check out
+                        </Button>
                     ) : null}
 
                     {!canMarkAttendance ? (
                         <p className="text-muted-foreground self-center text-sm">
                             You do not have permission to mark your own attendance.
                         </p>
+                    ) : null}
+
+                    {/* Errors outside the camera flow (no face check required). */}
+                    {faceNotice && !(face.required && face.enrolled && faceIntent !== null) ? (
+                        <p className="text-destructive self-center text-sm">{faceNotice}</p>
                     ) : null}
 
                     <Button variant="outline" size="sm" asChild>
@@ -909,9 +1164,10 @@ export default function Dashboard({
     departmentPerformance = [],
     officeStatus = [],
 }: Props) {
-    const { auth, can } = usePage().props;
+    const { auth, can, face: faceState } = usePage().props;
     const isAdmin = teamToday !== null;
     const canMarkAttendance = Boolean((can as Record<string, boolean> | undefined)?.markAttendance);
+    const face = faceState ?? { required: false, enrolled: false, threshold: 0.5 };
     const firstName = employee?.full_name?.split(' ')[0] ?? auth.user.name.split(' ')[0];
 
     // Owners and HR admins are employees too, so their personal check-in panel
@@ -925,6 +1181,7 @@ export default function Dashboard({
                     network={network}
                     attendancePolicy={attendancePolicy}
                     canMarkAttendance={canMarkAttendance}
+                    face={face}
                 />
             </div>
             <Card>

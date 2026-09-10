@@ -17,6 +17,7 @@ const appName = import.meta.env.VITE_APP_NAME || 'Attendrly';
 
 const workspaceSettingsPages = new Set([
     'settings/attendance',
+    'settings/timezone',
     'settings/domains',
     'settings/api-tokens',
 ]);

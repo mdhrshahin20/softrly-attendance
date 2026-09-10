@@ -26,4 +26,5 @@
 - Typography: a modern professional sans (Inter/Manrope/Geist class) with a small, disciplined type scale and clear hierarchy (page/section/card/body/caption/meta) — "do not use too many font sizes." Confidence: 0.75
 - Dashboard KPI cards stay compact (not oversized) and show current value + small trend vs. previous period, and each card is clickable through to the corresponding filtered data view. Confidence: 0.8
 - Analytics charts are real chart components with legends, tooltips, and empty/loading states — and avoid decorative chart clutter (only status, important actions, alerts, charts, and selected states use color). Confidence: 0.7
+- Device access and permission prompts must be user-initiated: the camera opens only when the user clicks the action (Check in / Check out), never automatically on page load. Confidence: 0.55
 - Interactions and animations must be subtle and fast (hover/focus/active/selected states, smooth dropdowns/drawers/modals, toasts, button loading) — no excessive or random animation; respect reduced motion. Confidence: 0.7

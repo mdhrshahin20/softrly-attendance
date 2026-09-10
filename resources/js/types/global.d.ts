@@ -27,6 +27,11 @@ declare module '@inertiajs/core' {
                 avatar?: string | null;
             } | null;
             can?: Record<string, boolean>;
+            face?: {
+                required: boolean;
+                enrolled: boolean;
+                threshold: number;
+            };
             unreadNotifications?: number;
             recentNotifications?: AppNotification[];
             [key: string]: unknown;

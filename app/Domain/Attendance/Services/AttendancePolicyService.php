@@ -16,6 +16,7 @@ class AttendancePolicyService
         private readonly NetworkVerificationService $networks,
         private readonly LocationVerificationService $locations,
         private readonly DeviceFingerprintService $devices,
+        private readonly FaceVerificationService $faces,
     ) {}
 
     public function mode(?Tenant $tenant = null): AttendanceMode
@@ -31,7 +32,8 @@ class AttendancePolicyService
      *     mode: AttendanceMode,
      *     office: Office,
      *     device: array{device_id: string, browser: string, os: string, user_agent: string, trusted: bool, model: UserDevice},
-     *     method: string
+     *     method: string,
+     *     face: array{required: bool, score: float|null, selfie_path: string|null}
      * }
      */
     public function authorize(Request $request, Employee $employee): array
@@ -50,11 +52,16 @@ class AttendancePolicyService
             ]);
         }
 
+        // Face verification is an independent requirement layered on top of the
+        // configured attendance mode, so it composes with network/location/device.
+        $face = $this->faces->assertVerified($request, $employee);
+
         return [
             'mode' => $mode,
             'office' => $office,
             'device' => $device,
             'method' => $mode->value,
+            'face' => $face,
         ];
     }
 

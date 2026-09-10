@@ -112,3 +112,83 @@ mysql -u USER -p DB_NAME < restore/database.sql
 ```
 
 `.env` is intentionally **not** included in archives; restore it separately.
+
+## Face verification
+
+Optional per-workspace check-in verification. Off by default; enable it in
+**Settings → Attendance** (requires the `face_verification` plan feature, which
+is on Professional and Enterprise).
+
+### How it works
+
+The browser detects the face and extracts a 128-float descriptor using
+`@vladmandic/face-api`. **Only the descriptor is sent** — the server compares it
+to the enrolled template with plain vector math and decides pass or fail. A
+tampered client cannot claim success, because the comparison never happens in
+the browser.
+
+### Verification flow
+
+The camera is **only opened on demand** — it is not started when the dashboard
+loads, so no permission prompt appears until the employee acts.
+
+1. Employee clicks **Check in** (or **Check out**).
+2. The camera panel opens and the employee's face is verified automatically —
+   the detection loop waits until a face is held steady (two consecutive
+   detections), then matches the descriptor against the stored template via
+   `POST /face/verify`.
+3. On a match the attendance is submitted automatically. On a mismatch it
+   retries a couple of times, then offers **Try again**. **Cancel** closes the
+   camera without marking anything.
+
+- **Auto-verification never marks attendance by itself.** The employee clicking
+  Check in / Check out is what starts it, and the server verifies again when the
+  attendance is actually written.
+- Attempts are capped (`MAX_AUTO_ATTEMPTS` in `resources/js/pages/dashboard.tsx`)
+  so a bad camera cannot loop against the server.
+- `/face/verify` is throttled to 60 requests/minute and has no side effects.
+- When a workspace does **not** require face verification, clicking the button
+  submits immediately with no camera involved.
+
+### Model assets
+
+The model weights are ~7 MB and are **not committed**. They are copied from
+`node_modules/@vladmandic/face-api/model` into `public/models` on every build:
+
+```bash
+npm run face:models   # also runs automatically before `npm run build` and `npm run dev`
+```
+
+Because `bin/build.sh` calls `npm run build`, a normal deploy handles this. If
+you build elsewhere and sync only `public/`, make sure `public/models` is
+included — check-in will silently fail to load models without it.
+
+The `face-api` JS chunk is code-split (~330 KB gzipped) and only loads when an
+employee enrols or the workspace requires verification, so it costs nothing on
+normal pages.
+
+### Data and retention
+
+- Stored per employee: the **descriptor** (a mean of the enrolment samples) and,
+  optionally, a small enrolment selfie used only as a human reference.
+- Stored per check-in: the match score, the verified timestamp, and — when
+  **Keep the check-in selfie** is on — a downscaled frame.
+- Selfies live on the **private** disk (`storage/app`, never `public/`) and are
+  served through an authenticated route.
+- Face data is biometric, so it needs employee consent and a deletion path.
+  Employees can view and remove their own data at any time from `/face`, which
+  revokes the template immediately.
+
+Back up `storage/app/faces` alongside the database — templates are not portable
+without it, and restoring a database without them forces re-enrolment.
+
+### Tuning
+
+`face_match_threshold` defaults to `0.5` (Euclidean distance, lower is
+stricter). Typical same-face distance is ~0.3–0.5 and different-face is ~0.7+.
+Raise it if genuine employees are rejected; lower it if impostors get through.
+
+Only active liveness detection (blink/turn challenges) defends against a printed
+photo or a video replay. That is not implemented — treat this as a strong
+deterrent and an audit trail, not as biometric proof of life.
+

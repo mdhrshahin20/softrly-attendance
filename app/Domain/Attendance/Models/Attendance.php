@@ -36,6 +36,12 @@ use Illuminate\Support\Carbon;
  * @property int $overtime_minutes
  * @property string|null $check_in_method
  * @property string|null $check_out_method
+ * @property float|null $check_in_face_score
+ * @property Carbon|null $check_in_face_verified_at
+ * @property string|null $check_in_selfie_path
+ * @property float|null $check_out_face_score
+ * @property Carbon|null $check_out_face_verified_at
+ * @property string|null $check_out_selfie_path
  * @property string|null $notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -62,6 +68,12 @@ use Illuminate\Support\Carbon;
     'overtime_minutes',
     'check_in_method',
     'check_out_method',
+    'check_in_face_score',
+    'check_in_face_verified_at',
+    'check_in_selfie_path',
+    'check_out_face_score',
+    'check_out_face_verified_at',
+    'check_out_selfie_path',
     'notes',
 ])]
 class Attendance extends Model
@@ -106,6 +118,10 @@ class Attendance extends Model
             'early_leave_minutes' => 'integer',
             'work_minutes' => 'integer',
             'overtime_minutes' => 'integer',
+            'check_in_face_score' => 'float',
+            'check_in_face_verified_at' => 'datetime',
+            'check_out_face_score' => 'float',
+            'check_out_face_verified_at' => 'datetime',
         ];
     }
 }

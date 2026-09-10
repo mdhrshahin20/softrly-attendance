@@ -1,7 +1,10 @@
 import { Form, Head } from '@inertiajs/react';
-import { Fingerprint, Globe, MapPin, Wifi, type LucideIcon } from 'lucide-react';
+import { Fingerprint, Globe, MapPin, ScanFace, Users, Wifi, type LucideIcon } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
 type Mode = {
@@ -9,6 +12,14 @@ type Mode = {
     label: string;
     description: string;
     requires_location: boolean;
+};
+
+type FaceSettings = {
+    enabled: boolean;
+    threshold: number;
+    store_selfie: boolean;
+    enrolled_count: number;
+    total_employees: number;
 };
 
 function modeIcon(mode: Mode): LucideIcon {
@@ -27,11 +38,18 @@ export default function AttendanceSettings({
     mode,
     modes,
     canUseLocation,
+    canUseFace = false,
+    face,
 }: {
     mode: string;
     modes: Mode[];
     canUseLocation: boolean;
+    canUseFace?: boolean;
+    face?: FaceSettings;
 }) {
+    const [faceEnabled, setFaceEnabled] = useState(face?.enabled ?? false);
+    const [storeSelfie, setStoreSelfie] = useState(face?.store_selfie ?? true);
+
     return (
         <>
             <Head title="Attendance settings" />
@@ -106,8 +124,143 @@ export default function AttendanceSettings({
                                 </p>
                             ) : null}
 
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="flex items-center gap-2 text-base">
+                                        <ScanFace className="size-4" />
+                                        Face verification
+                                    </CardTitle>
+                                    <CardDescription>
+                                        Adds a face check on top of the mode above. The match is
+                                        decided on the server against the descriptor the employee
+                                        enrolled — nothing is verified in the browser.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    {!canUseFace ? (
+                                        <p className="text-muted-foreground text-sm">
+                                            Face verification is not included in your current plan.
+                                        </p>
+                                    ) : (
+                                        <>
+                                            <input type="hidden" name="face_verification" value="0" />
+                                            <input type="hidden" name="face_store_selfie" value="0" />
+
+                                            <label className="flex cursor-pointer items-center justify-between gap-4">
+                                                <div>
+                                                    <div className="text-sm font-medium">
+                                                        Require a face check to mark attendance
+                                                    </div>
+                                                    <p className="text-muted-foreground mt-1 text-xs leading-5">
+                                                        Employees must enrol their face and verify it
+                                                        at every check-in and check-out.
+                                                    </p>
+                                                </div>
+                                                <span
+                                                    className={cn(
+                                                        'relative h-6 w-11 shrink-0 rounded-full transition-colors',
+                                                        faceEnabled ? 'bg-primary' : 'bg-muted',
+                                                    )}
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        name="face_verification"
+                                                        value="1"
+                                                        checked={faceEnabled}
+                                                        onChange={(event) =>
+                                                            setFaceEnabled(event.target.checked)
+                                                        }
+                                                        className="absolute inset-0 z-10 cursor-pointer opacity-0"
+                                                        aria-label="Require face verification"
+                                                    />
+                                                    <span
+                                                        className={cn(
+                                                            'bg-background absolute top-0.5 left-0.5 size-5 rounded-full shadow-sm transition-transform',
+                                                            faceEnabled && 'translate-x-5',
+                                                        )}
+                                                    />
+                                                </span>
+                                            </label>
+
+                                            {faceEnabled ? (
+                                                <div className="space-y-4 border-t pt-4">
+                                                    <div className="space-y-1.5">
+                                                        <Label htmlFor="face_match_threshold">
+                                                            Match sensitivity
+                                                        </Label>
+                                                        <Input
+                                                            id="face_match_threshold"
+                                                            name="face_match_threshold"
+                                                            type="number"
+                                                            step="0.05"
+                                                            min={0.1}
+                                                            max={1.2}
+                                                            defaultValue={face?.threshold ?? 0.5}
+                                                            className="max-w-40"
+                                                        />
+                                                        <p className="text-muted-foreground text-xs leading-5">
+                                                            Lower is stricter. 0.50 is a balanced
+                                                            default. Raise it if genuine employees
+                                                            are rejected, lower it if impostors get
+                                                            through.
+                                                        </p>
+                                                    </div>
+
+                                                    <label className="flex cursor-pointer items-center justify-between gap-4">
+                                                        <div>
+                                                            <div className="text-sm font-medium">
+                                                                Keep the check-in selfie
+                                                            </div>
+                                                            <p className="text-muted-foreground mt-1 text-xs leading-5">
+                                                                Stores a small reference image per
+                                                                check-in so HR can review a disputed
+                                                                record. Turn off to keep only the match
+                                                                score.
+                                                            </p>
+                                                        </div>
+                                                        <span
+                                                            className={cn(
+                                                                'relative h-6 w-11 shrink-0 rounded-full transition-colors',
+                                                                storeSelfie
+                                                                    ? 'bg-primary'
+                                                                    : 'bg-muted',
+                                                            )}
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                name="face_store_selfie"
+                                                                value="1"
+                                                                checked={storeSelfie}
+                                                                onChange={(event) =>
+                                                                    setStoreSelfie(event.target.checked)
+                                                                }
+                                                                className="absolute inset-0 z-10 cursor-pointer opacity-0"
+                                                                aria-label="Keep check-in selfie"
+                                                            />
+                                                            <span
+                                                                className={cn(
+                                                                    'bg-background absolute top-0.5 left-0.5 size-5 rounded-full shadow-sm transition-transform',
+                                                                    storeSelfie && 'translate-x-5',
+                                                                )}
+                                                            />
+                                                        </span>
+                                                    </label>
+
+                                                    <p className="text-muted-foreground flex items-center gap-2 text-xs">
+                                                        <Users className="size-3.5" />
+                                                        {face?.enrolled_count ?? 0} of{' '}
+                                                        {face?.total_employees ?? 0} active employees
+                                                        enrolled.
+                                                    </p>
+                                                </div>
+                                            ) : null}
+                                        </>
+                                    )}
+                                </CardContent>
+                            </Card>
+
                             <Button type="submit" disabled={processing}>
-                                Save attendance mode
+                                Save attendance settings
                             </Button>
                         </>
                     )}

@@ -24,6 +24,7 @@ import {
     Palmtree,
     Plug,
     Receipt,
+    ScanFace,
     ScrollText,
     Shield,
     Users,
@@ -91,6 +92,11 @@ export function buildNavGroups({
                       title: 'Devices',
                       href: '/devices',
                       icon: Fingerprint,
+                  },
+                  {
+                      title: 'Face verification',
+                      href: '/face',
+                      icon: ScanFace,
                   },
               ])
             : null,
