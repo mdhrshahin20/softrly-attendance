@@ -34,7 +34,7 @@ export default function Pricing({ plans }: { plans: Plan[] }) {
                 <meta
                     head-key="description"
                     name="description"
-                    content="Simple Softrly pricing for attendance and leave management. Start with a free trial, then pick a plan."
+                    content="Simple Attendrly pricing for attendance and leave management. Start with a free trial, then pick a plan."
                 />
             </Head>
             <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">

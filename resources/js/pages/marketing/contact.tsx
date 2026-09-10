@@ -13,13 +13,13 @@ export default function ContactPage() {
                 <meta
                     head-key="description"
                     name="description"
-                    content="Contact Softrly for product questions, demos, and enterprise support."
+                    content="Contact Attendrly for product questions, demos, and enterprise support."
                 />
             </Head>
             <section className="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-20">
                 <div>
                     <p className="text-primary text-sm font-medium">Contact</p>
-                    <h1 className="mt-3 text-4xl font-semibold tracking-tight">Talk to the Softrly team</h1>
+                    <h1 className="mt-3 text-4xl font-semibold tracking-tight">Talk to the Attendrly team</h1>
                     <p className="text-muted-foreground mt-4 text-base leading-7">
                         Questions about plans, onboarding, or office network attendance? Send a note and
                         we’ll get back to you.
@@ -63,7 +63,7 @@ export default function ContactPage() {
                                 const email = String(data.get('email') ?? '');
                                 const company = String(data.get('company') ?? '');
                                 const message = String(data.get('message') ?? '');
-                                const subject = encodeURIComponent(`Softrly inquiry from ${name}`);
+                                const subject = encodeURIComponent(`Attendrly inquiry from ${name}`);
                                 const body = encodeURIComponent(
                                     `Name: ${name}\nEmail: ${email}\nCompany: ${company}\n\n${message}`,
                                 );

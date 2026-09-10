@@ -1,11 +1,13 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import { EmptyState } from '@/components/empty-state';
+import InputError from '@/components/input-error';
 import { PageHeader } from '@/components/page-header';
 import { PageShell } from '@/components/page-shell';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 type PlanOption = { id: number; name: string };
@@ -27,7 +29,13 @@ type TenantDetail = {
     employees_count: number;
     offices_count: number;
     users_count: number;
-    owner: { id: number; name: string; email: string } | null;
+    owner: {
+        id: number;
+        name: string;
+        email: string;
+        email_verified: boolean;
+        email_verified_at: string | null;
+    } | null;
     subscription: {
         id: number;
         plan: string | null;
@@ -43,7 +51,7 @@ type TenantDetail = {
     } | null;
     domains: { id: number; hostname: string; type: string; status: string; is_primary: boolean }[];
     settings: Record<string, unknown>;
-    users: { id: number; name: string; email: string; is_owner: boolean }[];
+    users: { id: number; name: string; email: string; is_owner: boolean; email_verified: boolean }[];
     subscriptions: {
         id: number;
         plan: string | null;
@@ -98,11 +106,23 @@ function DetailRow({ label, value }: { label: string; value: ReactNode }) {
 export default function PlatformTenantShow({
     tenant,
     plans,
+    ownerPasswordReset,
 }: {
     tenant: TenantDetail;
     plans: PlanOption[];
+    ownerPasswordReset?: { email: string; password: string } | null;
 }) {
     const [tab, setTab] = useState<TabId>('overview');
+    const [copied, setCopied] = useState(false);
+
+    async function copyPassword() {
+        if (!ownerPasswordReset) {
+            return;
+        }
+
+        await navigator.clipboard.writeText(ownerPasswordReset.password);
+        setCopied(true);
+    }
 
     return (
         <>
@@ -120,6 +140,23 @@ export default function PlatformTenantShow({
                         </div>
                     }
                 />
+
+                {ownerPasswordReset ? (
+                    <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="font-medium">
+                                New password for {ownerPasswordReset.email}
+                            </span>
+                            <Button type="button" size="sm" variant="outline" onClick={copyPassword}>
+                                {copied ? 'Copied' : 'Copy'}
+                            </Button>
+                        </div>
+                        <pre className="mt-2 overflow-x-auto rounded bg-white p-2 text-base font-semibold tracking-wide">
+                            {ownerPasswordReset.password}
+                        </pre>
+                        <p className="mt-1 text-xs">Shown once — share it with the owner now.</p>
+                    </div>
+                ) : null}
 
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     {[
@@ -190,11 +227,49 @@ export default function PlatformTenantShow({
                                 <CardHeader>
                                     <CardTitle>Owner</CardTitle>
                                 </CardHeader>
-                                <CardContent className="space-y-1 text-sm">
+                                <CardContent className="space-y-3 text-sm">
                                     {tenant.owner ? (
                                         <>
-                                            <div className="font-medium">{tenant.owner.name}</div>
-                                            <div className="text-muted-foreground">{tenant.owner.email}</div>
+                                            <div>
+                                                <div className="font-medium">
+                                                    {tenant.owner.name}
+                                                </div>
+                                                <div className="text-muted-foreground">
+                                                    {tenant.owner.email}
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                {tenant.owner.email_verified ? (
+                                                    <StatusBadge
+                                                        status="active"
+                                                        label="Email verified"
+                                                    />
+                                                ) : (
+                                                    <StatusBadge
+                                                        status="pending"
+                                                        label="Email not verified"
+                                                    />
+                                                )}
+                                            </div>
+                                            {tenant.owner.email_verified ? (
+                                                <p className="text-muted-foreground text-xs">
+                                                    Verified{' '}
+                                                    {tenant.owner.email_verified_at ?? 'previously'}.
+                                                </p>
+                                            ) : (
+                                                <Form
+                                                    action={`/platform/tenants/${tenant.id}/verify-owner`}
+                                                    method="patch"
+                                                >
+                                                    <Button
+                                                        type="submit"
+                                                        variant="outline"
+                                                        className="w-full"
+                                                    >
+                                                        Verify owner email manually
+                                                    </Button>
+                                                </Form>
+                                            )}
                                         </>
                                     ) : (
                                         <p className="text-muted-foreground">No owner assigned.</p>
@@ -233,6 +308,54 @@ export default function PlatformTenantShow({
                                         <Button type="submit" variant="secondary" className="w-full">
                                             Extend trial +14 days
                                         </Button>
+                                    </Form>
+                                    <Form
+                                        action={`/platform/backups/tenant/${tenant.id}`}
+                                        method="post"
+                                        className="border-t pt-3"
+                                    >
+                                        {({ processing }) => (
+                                            <Button
+                                                type="submit"
+                                                variant="outline"
+                                                className="w-full"
+                                                disabled={processing}
+                                            >
+                                                {processing
+                                                    ? 'Building backup…'
+                                                    : 'Create workspace backup'}
+                                            </Button>
+                                        )}
+                                    </Form>
+                                    <Form
+                                        action={`/platform/tenants/${tenant.id}/password`}
+                                        method="patch"
+                                        className="grid gap-2 border-t pt-3"
+                                    >
+                                        {({ processing, errors }) => (
+                                            <>
+                                                <Input
+                                                    name="password"
+                                                    type="password"
+                                                    placeholder="New owner password"
+                                                    autoComplete="new-password"
+                                                />
+                                                <Input
+                                                    name="password_confirmation"
+                                                    type="password"
+                                                    placeholder="Confirm password"
+                                                    autoComplete="new-password"
+                                                />
+                                                <InputError message={errors.password} />
+                                                <Button type="submit" disabled={processing}>
+                                                    Set / reset owner password
+                                                </Button>
+                                                <p className="text-muted-foreground text-xs">
+                                                    Owner login: {tenant.owner?.email ?? '—'}. Leave
+                                                    blank to generate a password.
+                                                </p>
+                                            </>
+                                        )}
                                     </Form>
                                 </CardContent>
                             </Card>
@@ -399,7 +522,22 @@ export default function PlatformTenantShow({
                                                     {user.email}
                                                 </div>
                                             </div>
-                                            {user.is_owner ? <StatusBadge status="active" label="Owner" /> : null}
+                                            <div className="flex flex-wrap items-center gap-1.5">
+                                                {user.is_owner ? (
+                                                    <StatusBadge status="active" label="Owner" />
+                                                ) : null}
+                                                {user.email_verified ? (
+                                                    <StatusBadge
+                                                        status="active"
+                                                        label="Verified"
+                                                    />
+                                                ) : (
+                                                    <StatusBadge
+                                                        status="pending"
+                                                        label="Unverified"
+                                                    />
+                                                )}
+                                            </div>
                                         </div>
                                     ))
                                 )}

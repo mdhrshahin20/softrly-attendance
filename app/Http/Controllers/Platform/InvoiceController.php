@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Platform;
 
 use App\Domain\Billing\Models\Invoice;
 use App\Domain\Billing\Services\InvoiceService;
+use App\Domain\Tenant\Services\AuditLogger;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,6 +16,7 @@ class InvoiceController extends Controller
 {
     public function __construct(
         private readonly InvoiceService $invoices,
+        private readonly AuditLogger $audit,
     ) {}
 
     public function index(Request $request): Response
@@ -64,9 +66,18 @@ class InvoiceController extends Controller
         return response($this->invoices->printHtml($invoice));
     }
 
-    public function send(Invoice $invoice): RedirectResponse
+    public function send(Request $request, Invoice $invoice): RedirectResponse
     {
         $this->invoices->sendToTenant($invoice);
+
+        $this->audit->record(
+            'invoice.sent',
+            $invoice,
+            newValues: ['to' => $invoice->billed_to_email, 'number' => $invoice->number],
+            user: $request->user(),
+            request: $request,
+            tenant: $invoice->tenant,
+        );
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Invoice emailed to '.$invoice->billed_to_email.'.']);
 

@@ -10,9 +10,13 @@ use App\Domain\Billing\Services\PlanCatalog;
 use App\Domain\Billing\Services\SubscriptionService;
 use App\Domain\Shared\Enums\TenantStatus;
 use App\Domain\Tenant\Models\Tenant;
+use App\Domain\Tenant\Services\AuditLogger;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -21,6 +25,7 @@ class TenantController extends Controller
     public function __construct(
         private readonly SubscriptionService $subscriptions,
         private readonly PlanCatalog $plans,
+        private readonly AuditLogger $audit,
     ) {}
 
     public function index(Request $request): Response
@@ -29,7 +34,10 @@ class TenantController extends Controller
         $status = $request->string('status')->toString();
 
         $tenants = Tenant::query()
-            ->with(['currentSubscription.plan'])
+            ->with([
+                'currentSubscription.plan',
+                'users' => fn ($query) => $query->wherePivot('is_owner', true),
+            ])
             ->withCount(['users', 'employees', 'offices'])
             ->when($search !== '', function ($query) use ($search): void {
                 $query->where(function ($inner) use ($search): void {
@@ -64,7 +72,7 @@ class TenantController extends Controller
         ]);
     }
 
-    public function show(Tenant $tenant): Response
+    public function show(Request $request, Tenant $tenant): Response
     {
         $tenant->load([
             'currentSubscription.plan',
@@ -141,6 +149,8 @@ class TenantController extends Controller
                     'id' => $owner->id,
                     'name' => $owner->name,
                     'email' => $owner->email,
+                    'email_verified' => $owner->email_verified_at !== null,
+                    'email_verified_at' => $owner->email_verified_at?->toDateTimeString(),
                 ] : null,
                 'subscription' => $subscription ? [
                     'id' => $subscription->id,
@@ -168,11 +178,13 @@ class TenantController extends Controller
                     'name' => $user->name,
                     'email' => $user->email,
                     'is_owner' => (bool) $user->pivot->is_owner,
+                    'email_verified' => $user->email_verified_at !== null,
                 ])->values(),
                 'subscriptions' => $subscriptions,
                 'invoices' => $invoices,
                 'payments' => $payments,
             ],
+            'ownerPasswordReset' => $request->session()->get('tenant_owner_password'),
             'plans' => Plan::query()
                 ->where('is_active', true)
                 ->orderBy('sort_order')
@@ -191,7 +203,18 @@ class TenantController extends Controller
             'status' => ['required', 'in:trial,active,suspended,cancelled,expired'],
         ]);
 
+        $previous = $tenant->status->value;
         $tenant->update($data);
+
+        $this->audit->record(
+            'tenant.status_updated',
+            $tenant,
+            ['status' => $previous],
+            ['status' => $tenant->status->value],
+            $request->user(),
+            $request,
+            $tenant,
+        );
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Tenant status updated.']);
 
@@ -216,6 +239,18 @@ class TenantController extends Controller
 
         Tenant::forgetCurrent();
 
+        $this->audit->record(
+            'tenant.plan_assigned',
+            $tenant,
+            newValues: [
+                'plan_id' => (int) $data['plan_id'],
+                'billing_cycle' => $data['billing_cycle'],
+            ],
+            user: $request->user(),
+            request: $request,
+            tenant: $tenant,
+        );
+
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Plan assigned.']);
 
         return back();
@@ -231,9 +266,92 @@ class TenantController extends Controller
         $this->subscriptions->extendTrial($tenant, (int) $data['days'], $request->user());
         Tenant::forgetCurrent();
 
+        $this->audit->record(
+            'tenant.trial_extended',
+            $tenant,
+            newValues: ['days' => (int) $data['days']],
+            user: $request->user(),
+            request: $request,
+            tenant: $tenant,
+        );
+
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Trial extended.']);
 
         return back();
+    }
+
+    public function verifyOwnerEmail(Request $request, Tenant $tenant): RedirectResponse
+    {
+        $owner = $tenant->owner();
+
+        if (! $owner instanceof User) {
+            abort(404, 'This tenant has no owner account.');
+        }
+
+        if ($owner->email_verified_at === null) {
+            $owner->forceFill(['email_verified_at' => now()])->save();
+
+            $this->audit->record(
+                'tenant.owner_email_verified',
+                $owner,
+                newValues: ['email' => $owner->email],
+                user: $request->user(),
+                request: $request,
+                tenant: $tenant,
+            );
+        }
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => $owner->email.' is now verified.',
+        ]);
+
+        return back();
+    }
+
+    public function updateOwnerPassword(Request $request, Tenant $tenant): RedirectResponse
+    {
+        $data = $request->validate([
+            'password' => ['nullable', 'string', Password::default(), 'confirmed'],
+        ]);
+
+        $owner = $tenant->owner();
+
+        if (! $owner instanceof User) {
+            abort(404, 'This tenant has no owner account.');
+        }
+
+        $generated = blank($data['password'] ?? null);
+        $password = $generated ? Str::password(16, symbols: false) : (string) $data['password'];
+
+        $owner->update(['password' => $password]);
+
+        $this->audit->record(
+            'tenant.owner_password_updated',
+            $owner,
+            newValues: ['email' => $owner->email, 'generated' => $generated],
+            user: $request->user(),
+            request: $request,
+            tenant: $tenant,
+        );
+
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => $generated
+                ? 'A new password was generated for '.$owner->email.'.'
+                : 'Password updated for '.$owner->email.'.',
+        ]);
+
+        $response = back();
+
+        if ($generated) {
+            $response->with('tenant_owner_password', [
+                'email' => $owner->email,
+                'password' => $password,
+            ]);
+        }
+
+        return $response;
     }
 
     /**
@@ -255,6 +373,8 @@ class TenantController extends Controller
             'plan' => $tenant->currentSubscription?->plan?->name,
             'plan_id' => $tenant->currentSubscription?->plan_id,
             'subscription_status' => $tenant->currentSubscription?->status?->value,
+            'owner_email' => $tenant->users->first()?->email,
+            'owner_verified' => (bool) $tenant->users->first()?->email_verified_at,
         ];
     }
 }

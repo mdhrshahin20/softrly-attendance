@@ -19,7 +19,7 @@ class LeaveRequestedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        return ['database', 'mail', 'broadcast'];
     }
 
     public function toMail(object $notifiable): MailMessage

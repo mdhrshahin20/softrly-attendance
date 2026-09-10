@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { Building2, CreditCard, FileText, Users } from 'lucide-react';
+import { Activity, Building2, CreditCard, FileText, HardDrive, Server, Users, Zap } from 'lucide-react';
 import { MetricCard } from '@/components/metric-card';
 import { MiniBars } from '@/components/mini-bars';
 import { PageHeader } from '@/components/page-header';
@@ -9,6 +9,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 type SeriesPoint = { label: string; key: string; tenants: number; revenue: number; leads: number };
+
+function formatBytes(bytes: number): string {
+    if (bytes <= 0) {
+        return '—';
+    }
+
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const index = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
+
+    return `${(bytes / 1024 ** index).toFixed(1)} ${units[index]}`;
+}
 
 type Props = {
     stats: {
@@ -47,6 +58,16 @@ type Props = {
         status_label: string;
         billed_to_email: string | null;
     }[];
+    system: {
+        environment: string;
+        maintenance: boolean;
+        debug: boolean;
+        cache_store: string;
+        queue_connection: string;
+        queue_pending: number;
+        queue_failed: number;
+        disk_free_bytes: number;
+    };
 };
 
 export default function PlatformDashboard({
@@ -56,6 +77,7 @@ export default function PlatformDashboard({
     sources,
     recentPayments,
     recentInvoices,
+    system,
 }: Props) {
     const planMax = Math.max(...planDistribution.map((row) => row.count), 1);
 
@@ -91,6 +113,32 @@ export default function PlatformDashboard({
                         value={stats.invoices_sent}
                         hint={`${stats.outstanding_invoices} outstanding · ${stats.trial_conversion}% converted`}
                         icon={FileText}
+                    />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <MetricCard
+                        label="Environment"
+                        value={system.environment}
+                        hint={system.debug ? 'Debug enabled' : 'Debug disabled'}
+                        icon={Server}
+                    />
+                    <MetricCard
+                        label="Queue"
+                        value={system.queue_pending}
+                        hint={`${system.queue_failed} failed · ${system.queue_connection} driver`}
+                        icon={Activity}
+                    />
+                    <MetricCard
+                        label="Cache store"
+                        value={system.cache_store}
+                        hint={system.maintenance ? 'Maintenance mode on' : 'Application live'}
+                        icon={Zap}
+                    />
+                    <MetricCard
+                        label="Disk free"
+                        value={formatBytes(system.disk_free_bytes)}
+                        hint="Storage volume on the app server"
+                        icon={HardDrive}
                     />
                 </div>
                 <div className="grid gap-4 lg:grid-cols-2">

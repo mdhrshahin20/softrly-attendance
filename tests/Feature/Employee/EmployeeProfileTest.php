@@ -8,6 +8,7 @@ use App\Domain\Shared\Enums\EmploymentType;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
@@ -102,6 +103,71 @@ test('employees cannot view another employee profile', function () {
     $this->actingAs($reportUser)
         ->get("/employees/{$employee->id}")
         ->assertOk();
+});
+
+test('tenant owners can set an employee login password', function () {
+    $workspace = createWorkspace(['owner_email' => 'hr-password@example.com']);
+    $employee = $workspace['employee'];
+
+    actingAsOwner($workspace)
+        ->put("/employees/{$employee->id}", [
+            'employee_code' => $employee->employee_code,
+            'first_name' => $employee->first_name,
+            'last_name' => $employee->last_name,
+            'email' => $employee->email,
+            'employment_type' => $employee->employment_type->value,
+            'status' => $employee->status->value,
+            'password' => 'brand-new-employee-pass',
+        ])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    expect(Hash::check('brand-new-employee-pass', $employee->user->refresh()->password))->toBeTrue();
+});
+
+test('leaving the employee password blank keeps the current password', function () {
+    $workspace = createWorkspace(['owner_email' => 'hr-password-blank@example.com']);
+    $employee = $workspace['employee'];
+    $original = $employee->user->password;
+
+    actingAsOwner($workspace)
+        ->put("/employees/{$employee->id}", [
+            'employee_code' => $employee->employee_code,
+            'first_name' => $employee->first_name,
+            'last_name' => $employee->last_name,
+            'email' => $employee->email,
+            'employment_type' => $employee->employment_type->value,
+            'status' => $employee->status->value,
+            'password' => '',
+        ])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    expect($employee->user->refresh()->password)->toBe($original);
+});
+
+test('employees cannot change another employee password', function () {
+    $workspace = createWorkspace(['owner_email' => 'hr-password-deny@example.com']);
+    $workspace['tenant']->makeCurrent();
+    setPermissionsTeamId($workspace['tenant']->id);
+
+    $user = User::factory()->create(['current_tenant_id' => $workspace['tenant']->id]);
+    $workspace['tenant']->users()->attach($user->id);
+    $user->assignRole('employee');
+
+    $target = $workspace['employee'];
+
+    $this->actingAs($user)
+        ->put("/employees/{$target->id}", [
+            'employee_code' => $target->employee_code,
+            'first_name' => $target->first_name,
+            'last_name' => $target->last_name,
+            'email' => $target->email,
+            'employment_type' => $target->employment_type->value,
+            'status' => $target->status->value,
+            'password' => 'hacker-pass',
+        ])
+        ->assertForbidden();
 });
 
 test('employee lists and profiles include the linked user photo', function () {

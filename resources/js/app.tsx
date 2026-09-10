@@ -7,8 +7,13 @@ import AuthLayout from '@/layouts/auth-layout';
 import MarketingLayout from '@/layouts/marketing-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import WorkspaceSettingsLayout from '@/layouts/settings/workspace-layout';
+import { configureEcho } from '@laravel/echo-react';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Softrly';
+configureEcho({
+    broadcaster: 'reverb',
+});
+
+const appName = import.meta.env.VITE_APP_NAME || 'Attendrly';
 
 const workspaceSettingsPages = new Set([
     'settings/attendance',

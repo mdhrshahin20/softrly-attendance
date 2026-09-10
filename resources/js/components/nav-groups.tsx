@@ -9,12 +9,15 @@ import {
     Clock3,
     CreditCard,
     FileSpreadsheet,
+    FileText,
     Fingerprint,
     Globe,
+    HardDrive,
     Inbox,
     KeyRound,
     Layers3,
     LayoutGrid,
+    Mail,
     MapPin,
     Megaphone,
     Network,
@@ -24,6 +27,7 @@ import {
     ScrollText,
     Shield,
     Users,
+    Wrench,
 } from 'lucide-react';
 import { dashboard } from '@/routes';
 import type { NavGroup, NavItem } from '@/types';
@@ -54,7 +58,7 @@ export function buildNavGroups({ can, unreadNotifications, isPlatform }: NavCont
                 icon: LayoutGrid,
                 match: 'exact',
             },
-            !isPlatform && {
+            {
                 title: 'Notifications',
                 href: '/notifications',
                 icon: Bell,
@@ -246,6 +250,11 @@ export function buildNavGroups({ can, unreadNotifications, isPlatform }: NavCont
                       href: '/platform/payments',
                       icon: CreditCard,
                   },
+                  {
+                      title: 'Billing emails',
+                      href: '/platform/settings/billing',
+                      icon: Mail,
+                  },
               ])
             : null,
         isPlatform
@@ -273,6 +282,30 @@ export function buildNavGroups({ can, unreadNotifications, isPlatform }: NavCont
                       title: 'Gateways',
                       href: '/platform/gateways',
                       icon: Plug,
+                  },
+              ])
+            : null,
+        isPlatform
+            ? navGroup('Operations', [
+                  {
+                      title: 'Audit log',
+                      href: '/platform/audit',
+                      icon: ScrollText,
+                  },
+                  {
+                      title: 'System logs',
+                      href: '/platform/logs',
+                      icon: FileText,
+                  },
+                  {
+                      title: 'Maintenance',
+                      href: '/platform/maintenance',
+                      icon: Wrench,
+                  },
+                  {
+                      title: 'Backups',
+                      href: '/platform/backups',
+                      icon: HardDrive,
                   },
               ])
             : null,

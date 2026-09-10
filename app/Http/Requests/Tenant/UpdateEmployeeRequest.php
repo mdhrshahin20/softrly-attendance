@@ -38,6 +38,7 @@ class UpdateEmployeeRequest extends FormRequest
             'joining_date' => ['nullable', 'date'],
             'employment_type' => ['required', Rule::enum(EmploymentType::class)],
             'status' => ['required', Rule::enum(EmployeeStatus::class)],
+            'password' => ['nullable', 'string', 'min:8'],
             'role' => ['nullable', 'string', 'max:80'],
         ];
     }

@@ -63,7 +63,7 @@ const faqs = [
         a: 'Employees can log in from anywhere, but check-in and check-out can be restricted to approved office networks depending on your attendance mode.',
     },
     {
-        q: 'Is Softrly multi-tenant?',
+        q: 'Is Attendrly multi-tenant?',
         a: 'Yes. Each company gets an isolated workspace with its own employees, offices, leave data, and subscription.',
     },
     {
@@ -172,7 +172,7 @@ export default function Welcome() {
                 <meta
                     head-key="description"
                     name="description"
-                    content="Softrly helps companies manage employees, attendance, leave, offices, and workforce operations from one simple platform."
+                    content="Attendrly helps companies manage employees, attendance, leave, offices, and workforce operations from one simple platform."
                 />
             </Head>
 
@@ -341,7 +341,7 @@ export default function Welcome() {
                     <div>
                         <h2 className="text-3xl font-semibold tracking-tight">Frequently asked questions</h2>
                         <p className="text-muted-foreground mt-3 text-base leading-7">
-                            Straight answers for HR and operations teams evaluating Softrly.
+                            Straight answers for HR and operations teams evaluating Attendrly.
                         </p>
                     </div>
                     <div className="bg-card rounded-2xl border px-5">

@@ -21,7 +21,7 @@ test('signup starts a starter trial subscription', function () {
         'email' => 'owner@billing.test',
         'password' => 'password',
         'password_confirmation' => 'password',
-    ])->assertRedirect(route('dashboard', absolute: false));
+    ])->assertRedirect(route('verification.notice'));
 
     $subscription = Subscription::query()->with('plan')->first();
 

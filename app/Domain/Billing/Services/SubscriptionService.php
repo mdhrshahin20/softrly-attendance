@@ -10,6 +10,7 @@ use App\Domain\Billing\Events\PaymentCompleted;
 use App\Domain\Billing\Events\SubscriptionExpired;
 use App\Domain\Billing\Events\SubscriptionStarted;
 use App\Domain\Billing\Listeners\HandleSubscriptionMail;
+use App\Domain\Billing\Listeners\HandleSubscriptionNotifications;
 use App\Domain\Billing\Models\Payment;
 use App\Domain\Billing\Models\Plan;
 use App\Domain\Billing\Models\Subscription;
@@ -194,6 +195,7 @@ class SubscriptionService
         $tenant->update(['status' => TenantStatus::Cancelled]);
         $this->log($tenant, $actor, 'subscription.cancelled', $subscription);
         app(HandleSubscriptionMail::class)->cancelled($subscription->fresh(['tenant.users', 'plan']) ?? $subscription);
+        app(HandleSubscriptionNotifications::class)->cancelled($subscription->fresh(['tenant', 'plan']) ?? $subscription);
 
         return $subscription->fresh(['plan']) ?? $subscription;
     }

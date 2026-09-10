@@ -128,7 +128,7 @@ export default function PlatformGateways({
             <PageShell>
                 <PageHeader
                     title="Gateways"
-                    description="Configure payment providers, outbound email, and SMS for the Softrly platform."
+                    description="Configure payment providers, outbound email, and SMS for the Attendrly platform."
                 />
 
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -584,7 +584,7 @@ export default function PlatformGateways({
                                             <Input
                                                 name="sender_id"
                                                 defaultValue={str(sms.sender_id)}
-                                                placeholder="SOFTRLY"
+                                                placeholder="ATTENDRLY"
                                             />
                                         </Field>
                                         {(smsDriver === 'sslwireless' || smsDriver === 'http') && (

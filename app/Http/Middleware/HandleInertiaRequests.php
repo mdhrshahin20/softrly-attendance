@@ -80,6 +80,23 @@ class HandleInertiaRequests extends Middleware
                 'platform' => $user?->is_platform_admin ?? false,
             ],
             'unreadNotifications' => $user?->unreadNotifications()->count() ?? 0,
+            'recentNotifications' => $user
+                ? $user->notifications()
+                    ->latest()
+                    ->limit(10)
+                    ->get()
+                    ->map(fn ($notification): array => [
+                        'id' => $notification->id,
+                        'title' => $notification->data['title'] ?? 'Notification',
+                        'message' => $notification->data['message'] ?? '',
+                        'url' => $notification->data['url'] ?? null,
+                        'level' => $notification->data['level'] ?? 'info',
+                        'read_at' => $notification->read_at?->toIso8601String(),
+                        'created_at' => $notification->created_at?->toIso8601String(),
+                    ])
+                    ->values()
+                    ->all()
+                : [],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'marketing' => app(PlatformSettingsService::class)->marketingPublic(),
         ];

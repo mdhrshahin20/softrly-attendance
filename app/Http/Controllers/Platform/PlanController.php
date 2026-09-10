@@ -6,6 +6,7 @@ use App\Domain\Billing\Enums\PlanFeature;
 use App\Domain\Billing\Models\Plan;
 use App\Domain\Billing\Models\PlanFeatureModel;
 use App\Domain\Billing\Services\PlanCatalog;
+use App\Domain\Tenant\Services\AuditLogger;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,6 +18,10 @@ use Inertia\Response;
 
 class PlanController extends Controller
 {
+    public function __construct(
+        private readonly AuditLogger $audit,
+    ) {}
+
     public function index(PlanCatalog $catalog): Response
     {
         $catalog->seed();
@@ -100,6 +105,11 @@ class PlanController extends Controller
 
         $this->syncFeatures($plan, $request->input('features', []));
 
+        $this->audit->record('plan.created', $plan, newValues: [
+            'name' => $plan->name,
+            'slug' => $plan->slug,
+        ], user: $request->user(), request: $request);
+
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Plan created.']);
 
         return redirect()->route('platform.plans.show', $plan);
@@ -127,6 +137,11 @@ class PlanController extends Controller
             $this->syncFeatures($plan, $request->input('features', []));
         }
 
+        $this->audit->record('plan.updated', $plan, newValues: [
+            'name' => $plan->name,
+            'slug' => $plan->slug,
+        ], user: $request->user(), request: $request);
+
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Plan updated.']);
 
         return redirect()->route('platform.plans.show', $plan);
@@ -141,6 +156,12 @@ class PlanController extends Controller
         }
 
         $plan->features()->delete();
+
+        $this->audit->record('plan.deleted', newValues: [
+            'name' => $plan->name,
+            'slug' => $plan->slug,
+        ], user: request()->user(), request: request());
+
         $plan->delete();
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Plan deleted.']);

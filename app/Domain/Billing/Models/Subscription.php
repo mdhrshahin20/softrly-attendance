@@ -23,6 +23,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $current_period_start
  * @property Carbon|null $current_period_end
  * @property Carbon|null $cancelled_at
+ * @property Carbon|null $trial_reminder_sent_at
+ * @property Carbon|null $renewal_reminder_sent_at
  * @property-read Plan $plan
  * @property-read Tenant $tenant
  */
@@ -36,6 +38,8 @@ use Illuminate\Support\Carbon;
     'current_period_start',
     'current_period_end',
     'cancelled_at',
+    'trial_reminder_sent_at',
+    'renewal_reminder_sent_at',
 ])]
 class Subscription extends Model
 {
@@ -85,6 +89,8 @@ class Subscription extends Model
             'current_period_start' => 'datetime',
             'current_period_end' => 'datetime',
             'cancelled_at' => 'datetime',
+            'trial_reminder_sent_at' => 'datetime',
+            'renewal_reminder_sent_at' => 'datetime',
         ];
     }
 }

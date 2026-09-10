@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { CheckCircle2 } from 'lucide-react';
-import { SoftrlyLogo } from '@/components/brand/softrly-logo';
+import { AttendrlyLogo } from '@/components/brand/attendrly-logo';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
@@ -16,7 +16,7 @@ export default function AuthSplitLayout({
             <div className="relative hidden overflow-hidden bg-[oklch(0.28_0.06_277)] text-white lg:flex lg:flex-col lg:justify-between lg:p-10">
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,oklch(0.45_0.14_277_/_0.55),transparent_55%)]" />
                 <div className="relative">
-                    <SoftrlyLogo href={home()} tone="inverse" variant="compact" label={name || 'Softrly'} />
+                    <AttendrlyLogo href={home()} tone="inverse" variant="compact" label={name || 'Attendrly'} />
                 </div>
                 <div className="relative max-w-md space-y-6">
                     <h2 className="text-3xl font-semibold tracking-tight text-balance">
@@ -38,12 +38,12 @@ export default function AuthSplitLayout({
                         ))}
                     </ul>
                 </div>
-                <p className="relative text-xs text-white/50">© {new Date().getFullYear()} Softrly</p>
+                <p className="relative text-xs text-white/50">© {new Date().getFullYear()} Attendrly</p>
             </div>
 
             <div className="flex flex-col justify-center px-6 py-10 sm:px-10">
                 <div className="mb-8 flex justify-center lg:hidden">
-                    <SoftrlyLogo href={home()} variant="compact" />
+                    <AttendrlyLogo href={home()} variant="compact" />
                 </div>
                 <div className="mx-auto w-full max-w-[400px]">
                     <div className="mb-8 space-y-2 text-center sm:text-left">

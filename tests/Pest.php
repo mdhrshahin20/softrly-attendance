@@ -18,13 +18,17 @@ pest()->extend(TestCase::class)
  */
 function createWorkspace(array $overrides = []): array
 {
-    return app(TenantProvisioner::class)->provision([
+    $result = app(TenantProvisioner::class)->provision([
         'company_name' => $overrides['company_name'] ?? 'Softrly Ltd',
         'slug' => $overrides['slug'] ?? 'softrly-'.fake()->unique()->numerify('###'),
         'owner_name' => $overrides['owner_name'] ?? 'Hasan Shahin',
         'owner_email' => $overrides['owner_email'] ?? fake()->unique()->safeEmail(),
         'password' => $overrides['password'] ?? 'password',
     ]);
+
+    $result['user']->forceFill(['email_verified_at' => now()])->save();
+
+    return $result;
 }
 
 function actingAsOwner(array $workspace): mixed

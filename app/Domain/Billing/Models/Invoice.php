@@ -26,6 +26,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $issued_at
  * @property Carbon|null $due_at
  * @property Carbon|null $sent_at
+ * @property Carbon|null $due_reminder_sent_at
+ * @property Carbon|null $overdue_reminder_sent_at
  * @property string|null $notes
  * @property-read Collection<int, InvoiceItem> $items
  */
@@ -43,6 +45,8 @@ use Illuminate\Support\Carbon;
     'issued_at',
     'due_at',
     'sent_at',
+    'due_reminder_sent_at',
+    'overdue_reminder_sent_at',
     'notes',
 ])]
 class Invoice extends Model
@@ -115,6 +119,8 @@ class Invoice extends Model
             'issued_at' => 'datetime',
             'due_at' => 'datetime',
             'sent_at' => 'datetime',
+            'due_reminder_sent_at' => 'datetime',
+            'overdue_reminder_sent_at' => 'datetime',
         ];
     }
 }

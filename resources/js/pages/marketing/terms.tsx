@@ -8,7 +8,7 @@ export default function TermsPage() {
                 <h1>Terms of service</h1>
                 <p className="lead">Last updated: September 8, 2026</p>
                 <p>
-                    These terms govern access to Softrly’s website and multi-tenant SaaS platform. By
+                    These terms govern access to Attendrly’s website and multi-tenant SaaS platform. By
                     creating an account or using the service, you agree to these terms.
                 </p>
                 <h2>Accounts and workspaces</h2>
@@ -26,7 +26,7 @@ export default function TermsPage() {
                 <h2>Acceptable use</h2>
                 <p>
                     You may not misuse the service, attempt unauthorized access, interfere with tenant
-                    isolation, or use Softrly for unlawful purposes.
+                    isolation, or use Attendrly for unlawful purposes.
                 </p>
                 <h2>Contact</h2>
                 <p>

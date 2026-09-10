@@ -7,6 +7,7 @@ use App\Domain\Platform\Models\MessageLog;
 use App\Domain\Platform\Services\PlatformMailer;
 use App\Domain\Platform\Services\PlatformSettingsService;
 use App\Domain\Platform\Services\SmsService;
+use App\Domain\Tenant\Services\AuditLogger;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,6 +21,7 @@ class GatewaySettingsController extends Controller
         private readonly PaymentGatewayManager $gateways,
         private readonly PlatformMailer $mailer,
         private readonly SmsService $sms,
+        private readonly AuditLogger $audit,
     ) {}
 
     public function index(): Response
@@ -78,6 +80,10 @@ class GatewaySettingsController extends Controller
             'bkash' => $this->saveBkash($request),
             default => abort(404),
         };
+
+        $this->audit->record('settings.payment_gateway_updated', newValues: [
+            'gateway' => $gateway,
+        ], user: $request->user(), request: $request);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => ucfirst($gateway).' gateway saved.']);
 
@@ -207,6 +213,10 @@ class GatewaySettingsController extends Controller
         $this->optionalSecret('mail.ses_password', $data['ses_password'] ?? null);
         $this->optionalSecret('mail.brevo_key', $data['brevo_key'] ?? null);
 
+        $this->audit->record('settings.mail_updated', newValues: [
+            'driver' => $data['driver'],
+        ], user: $request->user(), request: $request);
+
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Email gateway saved.']);
 
         return back();
@@ -224,12 +234,16 @@ class GatewaySettingsController extends Controller
 
         $this->settings->putMany([
             'sms.driver' => $data['driver'],
-            'sms.sender_id' => $data['sender_id'] ?? 'SOFTRLY',
+            'sms.sender_id' => $data['sender_id'] ?? 'ATTENDRLY',
             'sms.api_url' => $data['api_url'] ?? '',
         ]);
 
         $this->optionalSecret('sms.api_key', $data['api_key'] ?? null);
         $this->optionalSecret('sms.api_secret', $data['api_secret'] ?? null);
+
+        $this->audit->record('settings.sms_updated', newValues: [
+            'driver' => $data['driver'],
+        ], user: $request->user(), request: $request);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'SMS gateway saved.']);
 
@@ -244,7 +258,7 @@ class GatewaySettingsController extends Controller
 
         $ok = $this->mailer->raw(
             $data['to'],
-            'Softrly test email',
+            'Attendrly test email',
             'Your email gateway is working. This is a test message from the platform admin.',
         );
 
@@ -262,7 +276,7 @@ class GatewaySettingsController extends Controller
             'to' => ['required', 'string', 'max:20'],
         ]);
 
-        $ok = $this->sms->send($data['to'], 'Softrly SMS gateway test. Your configuration is working.');
+        $ok = $this->sms->send($data['to'], 'Attendrly SMS gateway test. Your configuration is working.');
 
         Inertia::flash('toast', [
             'type' => $ok ? 'success' : 'error',

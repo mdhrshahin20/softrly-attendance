@@ -14,6 +14,8 @@ use App\Domain\Leave\Models\LeaveType;
 use App\Domain\Leave\Services\LeaveBalanceService;
 use App\Domain\Office\Models\Office;
 use App\Domain\Office\Models\OfficeNetwork;
+use App\Domain\Platform\Notifications\TenantSignedUpNotification;
+use App\Domain\Platform\Services\PlatformNotifier;
 use App\Domain\Shared\Enums\EmployeeStatus;
 use App\Domain\Shared\Enums\EmploymentType;
 use App\Domain\Shared\Enums\TenantStatus;
@@ -75,7 +77,6 @@ class TenantProvisioner
                 'name' => $input['owner_name'],
                 'email' => $input['owner_email'],
                 'password' => $input['password'],
-                'email_verified_at' => now(),
                 'current_tenant_id' => $tenant->id,
             ]);
 
@@ -159,6 +160,8 @@ class TenantProvisioner
         });
 
         Tenant::forgetCurrent();
+
+        app(PlatformNotifier::class)->notify(new TenantSignedUpNotification($result['tenant']));
 
         return $result;
     }

@@ -49,7 +49,7 @@ export default function FeaturesPage() {
                 <meta
                     head-key="description"
                     name="description"
-                    content="Explore Softrly features for attendance, leave, employees, offices, shifts, and workforce reporting."
+                    content="Explore Attendrly features for attendance, leave, employees, offices, shifts, and workforce reporting."
                 />
             </Head>
             <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
@@ -57,7 +57,7 @@ export default function FeaturesPage() {
                     <p className="text-primary text-sm font-medium">Product</p>
                     <h1 className="mt-3 text-4xl font-semibold tracking-tight">Built for daily workforce operations</h1>
                     <p className="text-muted-foreground mt-4 text-base leading-7">
-                        Softrly focuses on the workflows HR and managers actually use: attendance, leave,
+                        Attendrly focuses on the workflows HR and managers actually use: attendance, leave,
                         people data, offices, and reporting.
                     </p>
                 </div>

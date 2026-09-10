@@ -8,3 +8,7 @@
 - Attendance check-in/out must be gated by approved office network via dedicated middleware/service logic (IP/CIDR matching with proxy-aware client IP handling) rather than scattered controller code. Confidence: 0.7
 - Prefers versioned APIs (/api/v1) to keep a future mobile app feasible. Confidence: 0.6
 - Prefers queueing heavy work (exports, notifications) with tenant context preserved, Redis for cache/session/queue/rate limiting, and a scheduler for reminders and rollups. Confidence: 0.7
+- Wants notifications delivered in realtime (broadcast/WebSocket to the browser) rather than pull-only, and scoped by audience: platform-level events (new signups, payments, expiries/overdue invoices) go to platform admins, tenant-level events (billing, leave, etc.) go to tenant owners/admins. Confidence: 0.6
+- Wants the platform-admin area to double as an operations/monitoring console: cross-tenant audit log of admin actions, server/app log viewing, cache/storage/queue maintenance, and system health diagnostics surfaced (e.g. on the dashboard). Confidence: 0.6
+- Maintenance/ops controls exposed in the admin UI should be safe and allow-listed with read-only diagnostics — no running migrations/seeders or other destructive schema operations from the browser. Confidence: 0.55
+- Wants subscription/billing lifecycle emails fully automated on a schedule (sent idempotently, once per event) and configurable from platform settings (enable/disable plus day thresholds), rather than hardcoded. Confidence: 0.55

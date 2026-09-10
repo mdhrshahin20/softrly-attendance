@@ -21,7 +21,7 @@ export default function AuthSimpleLayout({
                             <div className="bg-primary text-primary-foreground flex size-11 items-center justify-center rounded-xl">
                                 <AppLogoIcon className="size-5" />
                             </div>
-                            <span className="text-sm font-semibold tracking-tight">Softrly</span>
+                            <span className="text-sm font-semibold tracking-tight">Attendrly</span>
                             <span className="sr-only">{title}</span>
                         </Link>
                         <div className="space-y-1.5 text-center">

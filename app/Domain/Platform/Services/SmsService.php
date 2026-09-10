@@ -17,7 +17,7 @@ class SmsService
     public function send(string $to, string $message, ?Tenant $tenant = null, mixed $related = null): bool
     {
         $driver = (string) $this->settings->get('sms.driver', 'log');
-        $sender = (string) $this->settings->get('sms.sender_id', 'SOFTRLY');
+        $sender = (string) $this->settings->get('sms.sender_id', 'ATTENDRLY');
 
         try {
             match ($driver) {

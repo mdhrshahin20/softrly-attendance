@@ -113,5 +113,5 @@ export default function Login({ status, canResetPassword }: Props) {
 
 Login.layout = {
     title: 'Welcome back',
-    description: 'Sign in to your Softrly workspace to manage attendance, leave, and your team.',
+    description: 'Sign in to your Attendrly workspace to manage attendance, leave, and your team.',
 };

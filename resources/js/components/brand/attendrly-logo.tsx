@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 type LogoVariant = 'full' | 'mark' | 'wordmark' | 'compact';
 type LogoTone = 'default' | 'inverse' | 'muted';
 
-type SoftrlyLogoProps = {
+type AttendrlyLogoProps = {
     variant?: LogoVariant;
     tone?: LogoTone;
     href?: InertiaLinkProps['href'] | null;
@@ -14,10 +14,10 @@ type SoftrlyLogoProps = {
 };
 
 /**
- * Softrly mark: a bold, verified check — the signature of a completed
+ * Attendrly mark: a bold, verified check — the signature of a completed
  * attendance check-in. Stroked so it works on any surface.
  */
-export function SoftrlyMark({ className }: { className?: string }) {
+export function AttendrlyMark({ className }: { className?: string }) {
     return (
         <svg
             viewBox="0 0 32 32"
@@ -50,14 +50,14 @@ const markToneClass: Record<LogoTone, string> = {
     muted: 'bg-muted text-foreground',
 };
 
-export function SoftrlyLogo({
+export function AttendrlyLogo({
     variant = 'full',
     tone = 'default',
     href = '/',
     className,
     markClassName,
-    label = 'Softrly',
-}: SoftrlyLogoProps) {
+    label = 'Attendrly',
+}: AttendrlyLogoProps) {
     const content = (
         <span
             className={cn(
@@ -74,7 +74,7 @@ export function SoftrlyLogo({
                         markClassName,
                     )}
                 >
-                    <SoftrlyMark className="size-[18px]" />
+                    <AttendrlyMark className="size-[18px]" />
                 </span>
             ) : null}
             {variant !== 'mark' ? (

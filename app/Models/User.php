@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Domain\Attendance\Models\UserDevice;
 use App\Domain\Employee\Models\Employee;
+use App\Domain\Platform\Services\PlatformMailer;
 use App\Domain\Tenant\Models\Tenant;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -44,7 +46,7 @@ use Spatie\Permission\Traits\HasRoles;
  */
 #[Fillable(['name', 'email', 'password', 'is_platform_admin', 'current_tenant_id', 'email_verified_at', 'avatar_path'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token', 'avatar_path'])]
-class User extends Authenticatable implements PasskeyUser
+class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
@@ -66,6 +68,13 @@ class User extends Authenticatable implements PasskeyUser
         if ($this->avatar_path) {
             Storage::disk('public')->delete($this->avatar_path);
         }
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        app(PlatformMailer::class)->applyTransport();
+
+        parent::sendEmailVerificationNotification();
     }
 
     /**

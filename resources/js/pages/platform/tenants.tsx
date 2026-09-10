@@ -24,6 +24,8 @@ type Tenant = {
     plan: string | null;
     plan_id: number | null;
     subscription_status: string | null;
+    owner_email: string | null;
+    owner_verified: boolean;
 };
 
 type Props = {
@@ -140,7 +142,19 @@ export default function PlatformTenants({ tenants, stats, filters }: Props) {
                                             </Link>
                                             <div className="text-muted-foreground text-xs">{tenant.slug}</div>
                                         </td>
-                                        <td className="px-4 py-3">{tenant.email}</td>
+                                        <td className="px-4 py-3">
+                                            <div>{tenant.owner_email ?? tenant.email}</div>
+                                            <div className="mt-1">
+                                                {tenant.owner_verified ? (
+                                                    <StatusBadge status="active" label="Verified" />
+                                                ) : (
+                                                    <StatusBadge
+                                                        status="pending"
+                                                        label="Not verified"
+                                                    />
+                                                )}
+                                            </div>
+                                        </td>
                                         <td className="px-4 py-3">
                                             <div>{tenant.employees_count}</div>
                                             <div className="text-muted-foreground text-xs">

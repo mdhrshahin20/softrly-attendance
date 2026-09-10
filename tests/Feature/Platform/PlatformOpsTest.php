@@ -9,6 +9,7 @@ use App\Domain\Platform\Services\PlatformSettingsService;
 use App\Mail\InvoiceMail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
 uses(RefreshDatabase::class);
@@ -160,6 +161,71 @@ test('platform admin can save marketing pixels and payment gateways', function (
             ->component('platform/gateway-configure')
             ->where('gateway.name', 'sslcommerz')
             ->where('config.mode', 'sandbox'));
+});
+
+test('platform admin can set a tenant owner password', function () {
+    $workspace = createWorkspace(['owner_email' => 'owner-pass@example.com']);
+    $admin = platformAdmin();
+
+    $this->actingAs($admin)
+        ->patch("/platform/tenants/{$workspace['tenant']->id}/password", [
+            'password' => 'brand-new-owner-pass',
+            'password_confirmation' => 'brand-new-owner-pass',
+        ])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    expect(Hash::check('brand-new-owner-pass', $workspace['user']->refresh()->password))->toBeTrue();
+});
+
+test('platform admin can generate a tenant owner password', function () {
+    $workspace = createWorkspace(['owner_email' => 'owner-gen@example.com']);
+    $admin = platformAdmin();
+
+    $this->actingAs($admin)
+        ->patch("/platform/tenants/{$workspace['tenant']->id}/password")
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    $generated = session('tenant_owner_password');
+
+    expect($generated)->toBeArray()
+        ->and($generated['email'])->toBe('owner-gen@example.com')
+        ->and(Hash::check($generated['password'], $workspace['user']->refresh()->password))->toBeTrue();
+
+    $this->actingAs($admin)
+        ->get("/platform/tenants/{$workspace['tenant']->id}")
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('platform/tenant-show')
+            ->where('ownerPasswordReset.email', 'owner-gen@example.com')
+            ->where('ownerPasswordReset.password', $generated['password']));
+});
+
+test('tenant owner password update requires a matching confirmation', function () {
+    $workspace = createWorkspace(['owner_email' => 'owner-mismatch@example.com']);
+    $admin = platformAdmin();
+
+    $this->actingAs($admin)
+        ->patch("/platform/tenants/{$workspace['tenant']->id}/password", [
+            'password' => 'brand-new-owner-pass',
+            'password_confirmation' => 'different-pass',
+        ])
+        ->assertSessionHasErrors('password');
+
+    expect(Hash::check('brand-new-owner-pass', $workspace['user']->refresh()->password))->toBeFalse();
+});
+
+test('non platform admins cannot change a tenant owner password', function () {
+    $workspace = createWorkspace(['owner_email' => 'owner-deny@example.com']);
+    $intruder = User::factory()->create(['email_verified_at' => now()]);
+
+    $this->actingAs($intruder)
+        ->patch("/platform/tenants/{$workspace['tenant']->id}/password", [
+            'password' => 'brand-new-owner-pass',
+            'password_confirmation' => 'brand-new-owner-pass',
+        ])
+        ->assertForbidden();
 });
 
 test('platform dashboard and reports render analytics', function () {

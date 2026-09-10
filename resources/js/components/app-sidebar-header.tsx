@@ -1,7 +1,8 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Bell, CircleHelp, CreditCard, LogOut, Settings, UserRound } from 'lucide-react';
+import { CircleHelp, CreditCard, LogOut, Settings, UserRound } from 'lucide-react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { CommandTrigger } from '@/components/command-menu';
+import { NotificationBell } from '@/components/notification-bell';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -22,9 +23,7 @@ export function AppSidebarHeader({
 }: {
     breadcrumbs?: BreadcrumbItemType[];
 }) {
-    const { unreadNotifications, can, auth } = usePage().props;
-    const unread = Number(unreadNotifications ?? 0);
-    const showNotifications = !can?.platform;
+    const { can, auth } = usePage().props;
     const showBilling = Boolean(can?.manageBilling) && !can?.platform;
 
     return (
@@ -48,23 +47,7 @@ export function AppSidebarHeader({
                     </Link>
                 </Button>
 
-                {showNotifications ? (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-muted-foreground hover:text-foreground relative size-9"
-                        asChild
-                    >
-                        <Link href="/notifications" aria-label="Notifications">
-                            <Bell className="size-4" />
-                            {unread > 0 ? (
-                                <span className="bg-primary text-primary-foreground absolute top-1.5 right-1.5 flex size-4 items-center justify-center rounded-full text-[10px] font-medium">
-                                    {unread > 9 ? '9+' : unread}
-                                </span>
-                            ) : null}
-                        </Link>
-                    </Button>
-                ) : null}
+                {auth.user ? <NotificationBell /> : null}
 
                 {auth.user ? (
                     <DropdownMenu>

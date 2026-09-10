@@ -1,7 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { Menu, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { SoftrlyLogo } from '@/components/brand/softrly-logo';
+import { AttendrlyLogo } from '@/components/brand/attendrly-logo';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { login, register } from '@/routes';
@@ -40,7 +40,7 @@ export function SiteHeader() {
             )}
         >
             <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-                <SoftrlyLogo variant="full" />
+                <AttendrlyLogo variant="full" />
 
                 <nav className="hidden items-center gap-1 md:flex">
                     {nav.map((item) => (

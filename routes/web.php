@@ -1,10 +1,15 @@
 <?php
 
 use App\Http\Controllers\Billing\GatewayCallbackController;
+use App\Http\Controllers\Platform\AuditLogController as PlatformAuditLogController;
+use App\Http\Controllers\Platform\BackupController as PlatformBackupController;
+use App\Http\Controllers\Platform\BillingSettingsController as PlatformBillingSettingsController;
 use App\Http\Controllers\Platform\DashboardController as PlatformDashboardController;
 use App\Http\Controllers\Platform\GatewaySettingsController as PlatformGatewaySettingsController;
 use App\Http\Controllers\Platform\InvoiceController as PlatformInvoiceController;
 use App\Http\Controllers\Platform\LeadController as PlatformLeadController;
+use App\Http\Controllers\Platform\LogController as PlatformLogController;
+use App\Http\Controllers\Platform\MaintenanceController as PlatformMaintenanceController;
 use App\Http\Controllers\Platform\MarketingController as PlatformMarketingController;
 use App\Http\Controllers\Platform\PaymentController as PlatformPaymentController;
 use App\Http\Controllers\Platform\PlanController as PlatformPlanController;
@@ -56,6 +61,10 @@ Route::match(['get', 'post'], 'billing/gateways/bkash/callback', [GatewayCallbac
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
+
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+    Route::post('notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
 });
 
 Route::middleware(['auth', 'verified', 'tenant', 'tenant.session'])->group(function () {
@@ -158,10 +167,6 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.session'])->group(funct
         Route::post('payroll/advances/{advance}/approve', [SalaryAdvanceController::class, 'approve'])->name('payroll.advances.approve');
         Route::post('payroll/advances/{advance}/reject', [SalaryAdvanceController::class, 'reject'])->name('payroll.advances.reject');
         Route::get('payroll/me', [SalaryAdvanceController::class, 'mine'])->name('payroll.me');
-
-        Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
-        Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
-        Route::post('notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
     });
 });
 
@@ -172,6 +177,8 @@ Route::middleware(['auth', 'verified', 'platform'])->prefix('platform')->name('p
     Route::patch('tenants/{tenant}/status', [PlatformTenantController::class, 'updateStatus'])->name('tenants.status');
     Route::patch('tenants/{tenant}/plan', [PlatformTenantController::class, 'updatePlan'])->name('tenants.plan');
     Route::patch('tenants/{tenant}/trial', [PlatformTenantController::class, 'extendTrial'])->name('tenants.trial');
+    Route::patch('tenants/{tenant}/password', [PlatformTenantController::class, 'updateOwnerPassword'])->name('tenants.password');
+    Route::patch('tenants/{tenant}/verify-owner', [PlatformTenantController::class, 'verifyOwnerEmail'])->name('tenants.verify-owner');
     Route::get('plans', [PlatformPlanController::class, 'index'])->name('plans');
     Route::get('plans/create', [PlatformPlanController::class, 'create'])->name('plans.create');
     Route::post('plans', [PlatformPlanController::class, 'store'])->name('plans.store');
@@ -197,6 +204,18 @@ Route::middleware(['auth', 'verified', 'platform'])->prefix('platform')->name('p
     Route::put('gateways/sms', [PlatformGatewaySettingsController::class, 'updateSms'])->name('gateways.sms');
     Route::post('gateways/mail/test', [PlatformGatewaySettingsController::class, 'testMail'])->name('gateways.mail.test');
     Route::post('gateways/sms/test', [PlatformGatewaySettingsController::class, 'testSms'])->name('gateways.sms.test');
+    Route::get('settings/billing', [PlatformBillingSettingsController::class, 'index'])->name('settings.billing');
+    Route::put('settings/billing', [PlatformBillingSettingsController::class, 'update'])->name('settings.billing.update');
+    Route::get('audit', [PlatformAuditLogController::class, 'index'])->name('audit');
+    Route::get('logs', [PlatformLogController::class, 'index'])->name('logs');
+    Route::delete('logs/{file}', [PlatformLogController::class, 'destroy'])->name('logs.destroy');
+    Route::get('maintenance', [PlatformMaintenanceController::class, 'index'])->name('maintenance');
+    Route::post('maintenance/run', [PlatformMaintenanceController::class, 'run'])->name('maintenance.run');
+    Route::get('backups', [PlatformBackupController::class, 'index'])->name('backups');
+    Route::post('backups/full', [PlatformBackupController::class, 'storeFull'])->name('backups.full');
+    Route::post('backups/tenant/{tenant}', [PlatformBackupController::class, 'storeTenant'])->name('backups.tenant');
+    Route::get('backups/{backup}/download', [PlatformBackupController::class, 'download'])->name('backups.download');
+    Route::delete('backups/{backup}', [PlatformBackupController::class, 'destroy'])->name('backups.destroy');
 });
 
 require __DIR__.'/settings.php';

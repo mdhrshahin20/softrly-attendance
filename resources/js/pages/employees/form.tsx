@@ -182,11 +182,19 @@ export default function EmployeeForm({
                                         </select>
                                     </Field>
                                 )}
-                                {!employee && (
-                                    <Field label="Temporary password" error={errors.password}>
-                                        <Input name="password" type="password" placeholder="Optional" />
-                                    </Field>
-                                )}
+                                <Field
+                                    label={employee ? 'New password' : 'Temporary password'}
+                                    error={errors.password}
+                                >
+                                    <Input
+                                        name="password"
+                                        type="password"
+                                        placeholder={
+                                            employee ? 'Leave blank to keep current' : 'Optional'
+                                        }
+                                        autoComplete="new-password"
+                                    />
+                                </Field>
                             </div>
 
                             <div className="flex gap-2">

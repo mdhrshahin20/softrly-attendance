@@ -133,13 +133,20 @@ class EmployeeController extends Controller
 
     public function update(UpdateEmployeeRequest $request, Employee $employee): RedirectResponse
     {
-        $employee->update(collect($request->validated())->except(['role'])->all());
+        $data = $request->validated();
+
+        $employee->update(collect($data)->except(['role', 'password'])->all());
 
         if ($employee->user) {
             $employee->user->update([
                 'name' => $employee->full_name,
                 'email' => $employee->email,
             ]);
+
+            if (filled($data['password'] ?? null)) {
+                $employee->user->update(['password' => $data['password']]);
+                app(AuditLogger::class)->record('employee.password_updated', $employee);
+            }
 
             if ($request->filled('role')) {
                 $this->assignRole($employee->user, (string) $request->input('role'));

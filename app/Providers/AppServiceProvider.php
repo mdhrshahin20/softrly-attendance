@@ -9,6 +9,7 @@ use App\Domain\Billing\Events\SubscriptionExpired;
 use App\Domain\Billing\Events\SubscriptionStarted;
 use App\Domain\Billing\Listeners\HandlePaymentCompleted;
 use App\Domain\Billing\Listeners\HandleSubscriptionMail;
+use App\Domain\Billing\Listeners\HandleSubscriptionNotifications;
 use App\Domain\Billing\Services\PaymentGatewayManager;
 use App\Domain\Employee\Models\Employee;
 use App\Domain\Holiday\Models\Holiday;
@@ -74,6 +75,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(PaymentCompleted::class, HandlePaymentCompleted::class);
         Event::listen(SubscriptionStarted::class, [HandleSubscriptionMail::class, 'started']);
         Event::listen(SubscriptionExpired::class, [HandleSubscriptionMail::class, 'expired']);
+        Event::listen(SubscriptionExpired::class, [HandleSubscriptionNotifications::class, 'expired']);
     }
 
     /**

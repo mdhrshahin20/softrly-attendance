@@ -1,4 +1,5 @@
 import type { Auth } from '@/types/auth';
+import type { AppNotification } from '@/types/notifications';
 
 declare module 'react' {
     interface InputHTMLAttributes<T> {
@@ -26,6 +27,8 @@ declare module '@inertiajs/core' {
                 avatar?: string | null;
             } | null;
             can?: Record<string, boolean>;
+            unreadNotifications?: number;
+            recentNotifications?: AppNotification[];
             [key: string]: unknown;
         };
     }
