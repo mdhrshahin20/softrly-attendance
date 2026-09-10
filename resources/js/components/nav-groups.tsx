@@ -47,7 +47,11 @@ function navGroup(
     return visible.length > 0 ? { title, items: visible } : null;
 }
 
-export function buildNavGroups({ can, unreadNotifications, isPlatform }: NavContext) {
+export function buildNavGroups({
+    can,
+    unreadNotifications,
+    isPlatform,
+}: NavContext) {
     const unread = Number(unreadNotifications ?? 0);
 
     return [

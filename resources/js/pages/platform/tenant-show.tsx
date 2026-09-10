@@ -6,7 +6,13 @@ import { PageHeader } from '@/components/page-header';
 import { PageShell } from '@/components/page-shell';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
@@ -49,9 +55,21 @@ type TenantDetail = {
         cancelled_at: string | null;
         allows_access: boolean;
     } | null;
-    domains: { id: number; hostname: string; type: string; status: string; is_primary: boolean }[];
+    domains: {
+        id: number;
+        hostname: string;
+        type: string;
+        status: string;
+        is_primary: boolean;
+    }[];
     settings: Record<string, unknown>;
-    users: { id: number; name: string; email: string; is_owner: boolean; email_verified: boolean }[];
+    users: {
+        id: number;
+        name: string;
+        email: string;
+        is_owner: boolean;
+        email_verified: boolean;
+    }[];
     subscriptions: {
         id: number;
         plan: string | null;
@@ -135,7 +153,9 @@ export default function PlatformTenantShow({
                         <div className="flex flex-wrap gap-2">
                             <StatusBadge status={tenant.status} />
                             <Button variant="outline" asChild>
-                                <Link href="/platform/tenants">Back to list</Link>
+                                <Link href="/platform/tenants">
+                                    Back to list
+                                </Link>
                             </Button>
                         </div>
                     }
@@ -147,14 +167,21 @@ export default function PlatformTenantShow({
                             <span className="font-medium">
                                 New password for {ownerPasswordReset.email}
                             </span>
-                            <Button type="button" size="sm" variant="outline" onClick={copyPassword}>
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={copyPassword}
+                            >
                                 {copied ? 'Copied' : 'Copy'}
                             </Button>
                         </div>
                         <pre className="mt-2 overflow-x-auto rounded bg-white p-2 text-base font-semibold tracking-wide">
                             {ownerPasswordReset.password}
                         </pre>
-                        <p className="mt-1 text-xs">Shown once — share it with the owner now.</p>
+                        <p className="mt-1 text-xs">
+                            Shown once — share it with the owner now.
+                        </p>
                     </div>
                 ) : null}
 
@@ -165,7 +192,9 @@ export default function PlatformTenantShow({
                         { label: 'Offices', value: tenant.offices_count },
                         {
                             label: 'Access',
-                            value: tenant.subscription?.allows_access ? 'Active' : 'Paused',
+                            value: tenant.subscription?.allows_access
+                                ? 'Active'
+                                : 'Paused',
                         },
                     ].map((item) => (
                         <Card key={item.label}>
@@ -190,7 +219,7 @@ export default function PlatformTenantShow({
                             className={cn(
                                 'rounded-t-lg px-3 py-2 text-sm transition-colors',
                                 tab === item.id
-                                    ? 'border-b-2 border-primary text-foreground font-medium'
+                                    ? 'border-primary text-foreground border-b-2 font-medium'
                                     : 'text-muted-foreground hover:text-foreground',
                             )}
                         >
@@ -204,20 +233,52 @@ export default function PlatformTenantShow({
                         <Card className="lg:col-span-2">
                             <CardHeader>
                                 <CardTitle>Company information</CardTitle>
-                                <CardDescription>Workspace identity and localization.</CardDescription>
+                                <CardDescription>
+                                    Workspace identity and localization.
+                                </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <dl>
-                                    <DetailRow label="Company" value={tenant.name} />
-                                    <DetailRow label="Slug" value={tenant.slug} />
-                                    <DetailRow label="UUID" value={tenant.uuid} />
-                                    <DetailRow label="Email" value={tenant.email} />
-                                    <DetailRow label="Phone" value={tenant.phone} />
-                                    <DetailRow label="Country" value={tenant.country} />
-                                    <DetailRow label="Timezone" value={tenant.timezone} />
-                                    <DetailRow label="Currency" value={tenant.currency} />
-                                    <DetailRow label="Created" value={tenant.created_at} />
-                                    <DetailRow label="Updated" value={tenant.updated_at} />
+                                    <DetailRow
+                                        label="Company"
+                                        value={tenant.name}
+                                    />
+                                    <DetailRow
+                                        label="Slug"
+                                        value={tenant.slug}
+                                    />
+                                    <DetailRow
+                                        label="UUID"
+                                        value={tenant.uuid}
+                                    />
+                                    <DetailRow
+                                        label="Email"
+                                        value={tenant.email}
+                                    />
+                                    <DetailRow
+                                        label="Phone"
+                                        value={tenant.phone}
+                                    />
+                                    <DetailRow
+                                        label="Country"
+                                        value={tenant.country}
+                                    />
+                                    <DetailRow
+                                        label="Timezone"
+                                        value={tenant.timezone}
+                                    />
+                                    <DetailRow
+                                        label="Currency"
+                                        value={tenant.currency}
+                                    />
+                                    <DetailRow
+                                        label="Created"
+                                        value={tenant.created_at}
+                                    />
+                                    <DetailRow
+                                        label="Updated"
+                                        value={tenant.updated_at}
+                                    />
                                 </dl>
                             </CardContent>
                         </Card>
@@ -254,7 +315,10 @@ export default function PlatformTenantShow({
                                             {tenant.owner.email_verified ? (
                                                 <p className="text-muted-foreground text-xs">
                                                     Verified{' '}
-                                                    {tenant.owner.email_verified_at ?? 'previously'}.
+                                                    {tenant.owner
+                                                        .email_verified_at ??
+                                                        'previously'}
+                                                    .
                                                 </p>
                                             ) : (
                                                 <Form
@@ -266,13 +330,16 @@ export default function PlatformTenantShow({
                                                         variant="outline"
                                                         className="w-full"
                                                     >
-                                                        Verify owner email manually
+                                                        Verify owner email
+                                                        manually
                                                     </Button>
                                                 </Form>
                                             )}
                                         </>
                                     ) : (
-                                        <p className="text-muted-foreground">No owner assigned.</p>
+                                        <p className="text-muted-foreground">
+                                            No owner assigned.
+                                        </p>
                                     )}
                                 </CardContent>
                             </Card>
@@ -290,10 +357,16 @@ export default function PlatformTenantShow({
                                             type="hidden"
                                             name="status"
                                             value={
-                                                tenant.status === 'suspended' ? 'active' : 'suspended'
+                                                tenant.status === 'suspended'
+                                                    ? 'active'
+                                                    : 'suspended'
                                             }
                                         />
-                                        <Button type="submit" variant="outline" className="w-full">
+                                        <Button
+                                            type="submit"
+                                            variant="outline"
+                                            className="w-full"
+                                        >
                                             {tenant.status === 'suspended'
                                                 ? 'Activate customer'
                                                 : 'Suspend customer'}
@@ -304,8 +377,16 @@ export default function PlatformTenantShow({
                                         method="patch"
                                         className="flex gap-2"
                                     >
-                                        <input type="hidden" name="days" value="14" />
-                                        <Button type="submit" variant="secondary" className="w-full">
+                                        <input
+                                            type="hidden"
+                                            name="days"
+                                            value="14"
+                                        />
+                                        <Button
+                                            type="submit"
+                                            variant="secondary"
+                                            className="w-full"
+                                        >
                                             Extend trial +14 days
                                         </Button>
                                     </Form>
@@ -346,13 +427,20 @@ export default function PlatformTenantShow({
                                                     placeholder="Confirm password"
                                                     autoComplete="new-password"
                                                 />
-                                                <InputError message={errors.password} />
-                                                <Button type="submit" disabled={processing}>
+                                                <InputError
+                                                    message={errors.password}
+                                                />
+                                                <Button
+                                                    type="submit"
+                                                    disabled={processing}
+                                                >
                                                     Set / reset owner password
                                                 </Button>
                                                 <p className="text-muted-foreground text-xs">
-                                                    Owner login: {tenant.owner?.email ?? '—'}. Leave
-                                                    blank to generate a password.
+                                                    Owner login:{' '}
+                                                    {tenant.owner?.email ?? '—'}
+                                                    . Leave blank to generate a
+                                                    password.
                                                 </p>
                                             </>
                                         )}
@@ -372,35 +460,57 @@ export default function PlatformTenantShow({
                             <CardContent>
                                 {tenant.subscription ? (
                                     <dl>
-                                        <DetailRow label="Plan" value={tenant.subscription.plan} />
+                                        <DetailRow
+                                            label="Plan"
+                                            value={tenant.subscription.plan}
+                                        />
                                         <DetailRow
                                             label="Status"
-                                            value={<StatusBadge status={tenant.subscription.status} />}
+                                            value={
+                                                <StatusBadge
+                                                    status={
+                                                        tenant.subscription
+                                                            .status
+                                                    }
+                                                />
+                                            }
                                         />
                                         <DetailRow
                                             label="Billing cycle"
-                                            value={tenant.subscription.billing_cycle}
+                                            value={
+                                                tenant.subscription
+                                                    .billing_cycle
+                                            }
                                         />
                                         <DetailRow
                                             label="Started"
-                                            value={tenant.subscription.started_at}
+                                            value={
+                                                tenant.subscription.started_at
+                                            }
                                         />
                                         <DetailRow
                                             label="Trial ends"
-                                            value={tenant.subscription.trial_ends_at}
+                                            value={
+                                                tenant.subscription
+                                                    .trial_ends_at
+                                            }
                                         />
                                         <DetailRow
                                             label="Period"
                                             value={
-                                                tenant.subscription.current_period_start ||
-                                                tenant.subscription.current_period_end
+                                                tenant.subscription
+                                                    .current_period_start ||
+                                                tenant.subscription
+                                                    .current_period_end
                                                     ? `${tenant.subscription.current_period_start ?? '—'} → ${tenant.subscription.current_period_end ?? '—'}`
                                                     : null
                                             }
                                         />
                                         <DetailRow
                                             label="Cancelled"
-                                            value={tenant.subscription.cancelled_at}
+                                            value={
+                                                tenant.subscription.cancelled_at
+                                            }
                                         />
                                     </dl>
                                 ) : (
@@ -416,7 +526,8 @@ export default function PlatformTenantShow({
                             <CardHeader>
                                 <CardTitle>Assign plan</CardTitle>
                                 <CardDescription>
-                                    Changes take effect immediately for this tenant.
+                                    Changes take effect immediately for this
+                                    tenant.
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -427,7 +538,9 @@ export default function PlatformTenantShow({
                                 >
                                     <select
                                         name="plan_id"
-                                        defaultValue={tenant.subscription?.plan_id ?? ''}
+                                        defaultValue={
+                                            tenant.subscription?.plan_id ?? ''
+                                        }
                                         className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm"
                                         required
                                     >
@@ -435,7 +548,10 @@ export default function PlatformTenantShow({
                                             Select a plan
                                         </option>
                                         {plans.map((plan) => (
-                                            <option key={plan.id} value={plan.id}>
+                                            <option
+                                                key={plan.id}
+                                                value={plan.id}
+                                            >
                                                 {plan.name}
                                             </option>
                                         ))}
@@ -443,7 +559,8 @@ export default function PlatformTenantShow({
                                     <select
                                         name="billing_cycle"
                                         defaultValue={
-                                            tenant.subscription?.billing_cycle ?? 'monthly'
+                                            tenant.subscription
+                                                ?.billing_cycle ?? 'monthly'
                                         }
                                         className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm"
                                     >
@@ -467,31 +584,57 @@ export default function PlatformTenantShow({
                                         <table className="w-full text-sm">
                                             <thead className="text-muted-foreground text-left">
                                                 <tr>
-                                                    <th className="py-2 pr-3">Plan</th>
-                                                    <th className="py-2 pr-3">Status</th>
-                                                    <th className="py-2 pr-3">Cycle</th>
-                                                    <th className="py-2 pr-3">Started</th>
-                                                    <th className="py-2">Period end</th>
+                                                    <th className="py-2 pr-3">
+                                                        Plan
+                                                    </th>
+                                                    <th className="py-2 pr-3">
+                                                        Status
+                                                    </th>
+                                                    <th className="py-2 pr-3">
+                                                        Cycle
+                                                    </th>
+                                                    <th className="py-2 pr-3">
+                                                        Started
+                                                    </th>
+                                                    <th className="py-2">
+                                                        Period end
+                                                    </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {tenant.subscriptions.map((item) => (
-                                                    <tr key={item.id} className="border-t">
-                                                        <td className="py-2 pr-3">{item.plan ?? '—'}</td>
-                                                        <td className="py-2 pr-3">
-                                                            <StatusBadge status={item.status} />
-                                                        </td>
-                                                        <td className="py-2 pr-3 capitalize">
-                                                            {item.billing_cycle}
-                                                        </td>
-                                                        <td className="py-2 pr-3">
-                                                            {item.started_at ?? '—'}
-                                                        </td>
-                                                        <td className="py-2">
-                                                            {item.current_period_end ?? '—'}
-                                                        </td>
-                                                    </tr>
-                                                ))}
+                                                {tenant.subscriptions.map(
+                                                    (item) => (
+                                                        <tr
+                                                            key={item.id}
+                                                            className="border-t"
+                                                        >
+                                                            <td className="py-2 pr-3">
+                                                                {item.plan ??
+                                                                    '—'}
+                                                            </td>
+                                                            <td className="py-2 pr-3">
+                                                                <StatusBadge
+                                                                    status={
+                                                                        item.status
+                                                                    }
+                                                                />
+                                                            </td>
+                                                            <td className="py-2 pr-3 capitalize">
+                                                                {
+                                                                    item.billing_cycle
+                                                                }
+                                                            </td>
+                                                            <td className="py-2 pr-3">
+                                                                {item.started_at ??
+                                                                    '—'}
+                                                            </td>
+                                                            <td className="py-2">
+                                                                {item.current_period_end ??
+                                                                    '—'}
+                                                            </td>
+                                                        </tr>
+                                                    ),
+                                                )}
                                             </tbody>
                                         </table>
                                     </div>
@@ -517,14 +660,19 @@ export default function PlatformTenantShow({
                                             className="flex items-center justify-between gap-3 border-b py-2 last:border-0"
                                         >
                                             <div>
-                                                <div className="text-sm font-medium">{user.name}</div>
+                                                <div className="text-sm font-medium">
+                                                    {user.name}
+                                                </div>
                                                 <div className="text-muted-foreground text-xs">
                                                     {user.email}
                                                 </div>
                                             </div>
                                             <div className="flex flex-wrap items-center gap-1.5">
                                                 {user.is_owner ? (
-                                                    <StatusBadge status="active" label="Owner" />
+                                                    <StatusBadge
+                                                        status="active"
+                                                        label="Owner"
+                                                    />
                                                 ) : null}
                                                 {user.email_verified ? (
                                                     <StatusBadge
@@ -552,11 +700,19 @@ export default function PlatformTenantShow({
                                     <EmptyState title="No custom domains" />
                                 ) : (
                                     tenant.domains.map((domain) => (
-                                        <div key={domain.id} className="border-b py-2 text-sm last:border-0">
-                                            <div className="font-medium">{domain.hostname}</div>
+                                        <div
+                                            key={domain.id}
+                                            className="border-b py-2 text-sm last:border-0"
+                                        >
+                                            <div className="font-medium">
+                                                {domain.hostname}
+                                            </div>
                                             <div className="text-muted-foreground text-xs">
                                                 {domain.type}
-                                                {domain.is_primary ? ' · primary' : ''} · {domain.status}
+                                                {domain.is_primary
+                                                    ? ' · primary'
+                                                    : ''}{' '}
+                                                · {domain.status}
                                             </div>
                                         </div>
                                     ))
@@ -590,15 +746,24 @@ export default function PlatformTenantShow({
                                                         {invoice.number}
                                                     </Link>
                                                     <div className="text-muted-foreground text-xs">
-                                                        {invoice.plan ?? 'Subscription'} ·{' '}
-                                                        {invoice.issued_at ?? '—'}
+                                                        {invoice.plan ??
+                                                            'Subscription'}{' '}
+                                                        ·{' '}
+                                                        {invoice.issued_at ??
+                                                            '—'}
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
                                                     <div className="text-sm font-medium">
-                                                        ৳{invoice.amount.toLocaleString()}
+                                                        ৳
+                                                        {invoice.amount.toLocaleString()}
                                                     </div>
-                                                    <StatusBadge status={invoice.status} label={invoice.status_label} />
+                                                    <StatusBadge
+                                                        status={invoice.status}
+                                                        label={
+                                                            invoice.status_label
+                                                        }
+                                                    />
                                                 </div>
                                             </div>
                                         ))}
@@ -625,14 +790,19 @@ export default function PlatformTenantShow({
                                                         {payment.gateway}
                                                     </div>
                                                     <div className="text-muted-foreground text-xs">
-                                                        {payment.transaction_id ?? payment.created_at ?? '—'}
+                                                        {payment.transaction_id ??
+                                                            payment.created_at ??
+                                                            '—'}
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
                                                     <div className="text-sm font-medium">
-                                                        ৳{payment.amount.toLocaleString()}
+                                                        ৳
+                                                        {payment.amount.toLocaleString()}
                                                     </div>
-                                                    <StatusBadge status={payment.status} />
+                                                    <StatusBadge
+                                                        status={payment.status}
+                                                    />
                                                 </div>
                                             </div>
                                         ))}
@@ -656,17 +826,19 @@ export default function PlatformTenantShow({
                                 <EmptyState title="No settings stored" />
                             ) : (
                                 <dl>
-                                    {Object.entries(tenant.settings).map(([key, value]) => (
-                                        <DetailRow
-                                            key={key}
-                                            label={key}
-                                            value={
-                                                typeof value === 'object'
-                                                    ? JSON.stringify(value)
-                                                    : String(value)
-                                            }
-                                        />
-                                    ))}
+                                    {Object.entries(tenant.settings).map(
+                                        ([key, value]) => (
+                                            <DetailRow
+                                                key={key}
+                                                label={key}
+                                                value={
+                                                    typeof value === 'object'
+                                                        ? JSON.stringify(value)
+                                                        : String(value)
+                                                }
+                                            />
+                                        ),
+                                    )}
                                 </dl>
                             )}
                         </CardContent>

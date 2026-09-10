@@ -38,6 +38,37 @@ test('check-in is blocked from an unauthorized network', function () {
     expect(Attendance::query()->count())->toBe(0);
 });
 
+test('a tenant owner still gets the check-in affordance on the admin dashboard', function () {
+    $this->travelTo(now()->setDate(2026, 9, 7)->setTime(9, 5));
+
+    $workspace = createWorkspace(['owner_email' => 'owner-dashboard@example.com']);
+
+    $this->actingAs($workspace['user'])
+        ->get('/dashboard')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('dashboard')
+            // The owner has employee.view, so they get the team analytics branch...
+            ->has('teamToday')
+            // ...and must still be able to mark their own attendance.
+            ->where('employee.id', $workspace['employee']->id)
+            ->where('can.markAttendance', true));
+
+    $this->actingAs($workspace['user'])
+        ->withServerVariables(['REMOTE_ADDR' => '127.0.0.1'])
+        ->post('/attendance/check-in')
+        ->assertRedirect();
+
+    expect(Attendance::query()->count())->toBe(1);
+
+    $this->actingAs($workspace['user'])
+        ->withServerVariables(['REMOTE_ADDR' => '127.0.0.1'])
+        ->post('/attendance/check-out')
+        ->assertRedirect();
+
+    expect(Attendance::query()->first()?->check_out_at)->not->toBeNull();
+});
+
 test('tenants cannot see another tenant employee directory', function () {
     $alpha = createWorkspace(['slug' => 'alpha-co', 'owner_email' => 'owner-a@example.com']);
     $beta = createWorkspace(['slug' => 'beta-co', 'owner_email' => 'owner-b@example.com']);

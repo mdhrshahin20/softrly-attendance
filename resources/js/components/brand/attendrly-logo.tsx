@@ -97,7 +97,7 @@ export function AttendrlyLogo({
     return (
         <Link
             href={href}
-            className="rounded-md inline-flex items-center outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="focus-visible:ring-ring inline-flex items-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         >
             {content}
         </Link>

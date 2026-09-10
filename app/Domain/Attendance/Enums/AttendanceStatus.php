@@ -13,6 +13,28 @@ enum AttendanceStatus: string
     case Weekend = 'weekend';
     case WorkFromHome = 'work_from_home';
     case Manual = 'manual';
+    case NotJoined = 'before_joining';
+
+    /**
+     * Statuses that may be written to an attendance record.
+     *
+     * Holiday, weekend and before-joining are derived when a month is rendered
+     * and must never be persisted.
+     *
+     * @return list<self>
+     */
+    public static function recordable(): array
+    {
+        return [
+            self::Present,
+            self::Late,
+            self::Absent,
+            self::HalfDay,
+            self::Leave,
+            self::WorkFromHome,
+            self::Manual,
+        ];
+    }
 
     public function label(): string
     {
@@ -26,6 +48,7 @@ enum AttendanceStatus: string
             self::Weekend => 'Weekly Off',
             self::WorkFromHome => 'Work From Home',
             self::Manual => 'Manual',
+            self::NotJoined => 'Before joining',
         };
     }
 
@@ -41,6 +64,7 @@ enum AttendanceStatus: string
             self::Weekend => 'WO',
             self::WorkFromHome => 'WFH',
             self::Manual => 'M',
+            self::NotJoined => '—',
         };
     }
 }

@@ -123,24 +123,39 @@ function ConfirmAction({
             <DialogContent>
                 <DialogTitle>Run “{action.label}”?</DialogTitle>
                 <DialogDescription>
-                    {action.description} Make sure you have a recent full backup before continuing.
+                    {action.description} Make sure you have a recent full backup
+                    before continuing.
                 </DialogDescription>
                 <Form
                     action="/platform/maintenance/run"
                     method="post"
-                    options={{ preserveScroll: true, onSuccess: () => setOpen(false) }}
+                    options={{
+                        preserveScroll: true,
+                    }}
                 >
                     {({ processing }) => (
                         <>
-                            <input type="hidden" name="action" value={action.name} />
+                            <input
+                                type="hidden"
+                                name="action"
+                                value={action.name}
+                            />
                             <input type="hidden" name="confirm" value="1" />
                             <DialogFooter className="gap-2">
                                 <DialogClose asChild>
-                                    <Button type="button" variant="secondary" disabled={processing}>
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        disabled={processing}
+                                    >
                                         Cancel
                                     </Button>
                                 </DialogClose>
-                                <Button type="submit" variant="destructive" disabled={processing}>
+                                <Button
+                                    type="submit"
+                                    variant="destructive"
+                                    disabled={processing}
+                                >
                                     {processing ? 'Running…' : 'Yes, run it'}
                                 </Button>
                             </DialogFooter>
@@ -294,8 +309,9 @@ export default function PlatformMaintenance({
                                 <Activity className="size-4" /> Safe actions
                             </CardTitle>
                             <CardDescription>
-                                These run artisan commands on the server. “Careful” actions require
-                                confirmation and are not reversible from this screen.
+                                These run artisan commands on the server.
+                                “Careful” actions require confirmation and are
+                                not reversible from this screen.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-2">

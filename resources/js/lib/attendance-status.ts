@@ -19,6 +19,7 @@ export type AttendanceStatusKey =
     | 'half_day'
     | 'work_from_home'
     | 'manual'
+    | 'before_joining'
     | 'on_time';
 
 type StatusVisual = {
@@ -88,6 +89,12 @@ export const attendanceStatusVisual: Record<string, StatusVisual> = {
         icon: CheckCircle2,
         cell: 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200',
         iconWrap: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-200',
+    },
+    before_joining: {
+        label: 'Before joining',
+        icon: Circle,
+        cell: 'border-dashed border-slate-200 bg-transparent text-slate-400 dark:border-slate-700 dark:text-slate-500',
+        iconWrap: 'bg-muted text-slate-400 dark:text-slate-500',
     },
 };
 

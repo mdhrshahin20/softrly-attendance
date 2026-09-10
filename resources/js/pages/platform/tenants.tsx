@@ -121,18 +121,35 @@ export default function PlatformTenants({ tenants, stats, filters }: Props) {
                         <table className="w-full min-w-[860px] text-sm">
                             <thead className="bg-muted/40 text-left">
                                 <tr>
-                                    <th className="px-4 py-3 font-medium">Company</th>
-                                    <th className="px-4 py-3 font-medium">Owner email</th>
-                                    <th className="px-4 py-3 font-medium">Employees</th>
-                                    <th className="px-4 py-3 font-medium">Plan</th>
-                                    <th className="px-4 py-3 font-medium">Status</th>
-                                    <th className="px-4 py-3 font-medium">Created</th>
-                                    <th className="px-4 py-3 font-medium">Actions</th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Company
+                                    </th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Owner email
+                                    </th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Employees
+                                    </th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Plan
+                                    </th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Status
+                                    </th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Created
+                                    </th>
+                                    <th className="px-4 py-3 font-medium">
+                                        Actions
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {tenants.data.map((tenant) => (
-                                    <tr key={tenant.id} className="hover:bg-muted/30 border-t">
+                                    <tr
+                                        key={tenant.id}
+                                        className="hover:bg-muted/30 border-t"
+                                    >
                                         <td className="px-4 py-3">
                                             <Link
                                                 href={`/platform/tenants/${tenant.id}`}
@@ -140,13 +157,21 @@ export default function PlatformTenants({ tenants, stats, filters }: Props) {
                                             >
                                                 {tenant.name}
                                             </Link>
-                                            <div className="text-muted-foreground text-xs">{tenant.slug}</div>
+                                            <div className="text-muted-foreground text-xs">
+                                                {tenant.slug}
+                                            </div>
                                         </td>
                                         <td className="px-4 py-3">
-                                            <div>{tenant.owner_email ?? tenant.email}</div>
+                                            <div>
+                                                {tenant.owner_email ??
+                                                    tenant.email}
+                                            </div>
                                             <div className="mt-1">
                                                 {tenant.owner_verified ? (
-                                                    <StatusBadge status="active" label="Verified" />
+                                                    <StatusBadge
+                                                        status="active"
+                                                        label="Verified"
+                                                    />
                                                 ) : (
                                                     <StatusBadge
                                                         status="pending"
@@ -158,26 +183,38 @@ export default function PlatformTenants({ tenants, stats, filters }: Props) {
                                         <td className="px-4 py-3">
                                             <div>{tenant.employees_count}</div>
                                             <div className="text-muted-foreground text-xs">
-                                                {tenant.users_count} users · {tenant.offices_count} offices
+                                                {tenant.users_count} users ·{' '}
+                                                {tenant.offices_count} offices
                                             </div>
                                         </td>
                                         <td className="px-4 py-3">
                                             <div>{tenant.plan ?? '—'}</div>
                                             {tenant.subscription_status ? (
                                                 <div className="text-muted-foreground text-xs capitalize">
-                                                    {tenant.subscription_status.replaceAll('_', ' ')}
+                                                    {tenant.subscription_status.replaceAll(
+                                                        '_',
+                                                        ' ',
+                                                    )}
                                                 </div>
                                             ) : null}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <StatusBadge status={tenant.status} />
+                                            <StatusBadge
+                                                status={tenant.status}
+                                            />
                                         </td>
                                         <td className="text-muted-foreground px-4 py-3">
                                             {tenant.created_at ?? '—'}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <Button size="sm" variant="outline" asChild>
-                                                <Link href={`/platform/tenants/${tenant.id}`}>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                asChild
+                                            >
+                                                <Link
+                                                    href={`/platform/tenants/${tenant.id}`}
+                                                >
                                                     <Eye className="size-3.5" />
                                                     View
                                                 </Link>

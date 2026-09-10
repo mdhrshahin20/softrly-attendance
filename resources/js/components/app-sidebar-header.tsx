@@ -1,5 +1,11 @@
 import { Link, usePage } from '@inertiajs/react';
-import { CircleHelp, CreditCard, LogOut, Settings, UserRound } from 'lucide-react';
+import {
+    CircleHelp,
+    CreditCard,
+    LogOut,
+    Settings,
+    UserRound,
+} from 'lucide-react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { CommandTrigger } from '@/components/command-menu';
 import { NotificationBell } from '@/components/notification-bell';
@@ -66,7 +72,9 @@ export function AppSidebarHeader({
                         <DropdownMenuContent align="end" className="min-w-56">
                             <DropdownMenuLabel className="font-normal">
                                 <div className="flex flex-col gap-0.5">
-                                    <span className="text-sm font-medium">{auth.user.name}</span>
+                                    <span className="text-sm font-medium">
+                                        {auth.user.name}
+                                    </span>
                                     <span className="text-muted-foreground text-xs">
                                         {auth.user.email}
                                     </span>
@@ -95,7 +103,12 @@ export function AppSidebarHeader({
                             ) : null}
                             <DropdownMenuSeparator />
                             <DropdownMenuItem asChild>
-                                <Link href={logout()} method="post" as="button" className="w-full">
+                                <Link
+                                    href={logout()}
+                                    method="post"
+                                    as="button"
+                                    className="w-full"
+                                >
                                     <LogOut className="mr-2 size-4" />
                                     Log out
                                 </Link>

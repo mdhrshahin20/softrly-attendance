@@ -125,8 +125,14 @@ class AdvancedReportService
         $late = $records->where('status', AttendanceStatus::Late)->count();
         $leaveDays = (float) $leaves->sum('total_days');
         $absent = 0;
+        $joiningDate = $employee->joining_date?->toDateString();
 
         for ($date = $start; $date->lte($end); $date = $date->addDay()) {
+            // Days before the employee joined are not absences.
+            if ($joiningDate !== null && $date->toDateString() < $joiningDate) {
+                continue;
+            }
+
             if (! $this->workingDays->isConfiguredWorkingWeekday($date)) {
                 continue;
             }

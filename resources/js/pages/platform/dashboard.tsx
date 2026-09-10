@@ -1,14 +1,35 @@
 import { Head, Link } from '@inertiajs/react';
-import { Activity, Building2, CreditCard, FileText, HardDrive, Server, Users, Zap } from 'lucide-react';
+import {
+    Activity,
+    Building2,
+    CreditCard,
+    FileText,
+    HardDrive,
+    Server,
+    Users,
+    Zap,
+} from 'lucide-react';
 import { MetricCard } from '@/components/metric-card';
 import { MiniBars } from '@/components/mini-bars';
 import { PageHeader } from '@/components/page-header';
 import { PageShell } from '@/components/page-shell';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 
-type SeriesPoint = { label: string; key: string; tenants: number; revenue: number; leads: number };
+type SeriesPoint = {
+    label: string;
+    key: string;
+    tenants: number;
+    revenue: number;
+    leads: number;
+};
 
 function formatBytes(bytes: number): string {
     if (bytes <= 0) {
@@ -16,7 +37,10 @@ function formatBytes(bytes: number): string {
     }
 
     const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const index = Math.min(units.length - 1, Math.floor(Math.log(bytes) / Math.log(1024)));
+    const index = Math.min(
+        units.length - 1,
+        Math.floor(Math.log(bytes) / Math.log(1024)),
+    );
 
     return `${(bytes / 1024 ** index).toFixed(1)} ${units[index]}`;
 }
@@ -91,7 +115,9 @@ export default function PlatformDashboard({
                     actions={
                         <>
                             <Button asChild>
-                                <Link href="/platform/reports">Open reports</Link>
+                                <Link href="/platform/reports">
+                                    Open reports
+                                </Link>
                             </Button>
                             <Button asChild variant="outline">
                                 <Link href="/platform/invoices">Invoices</Link>
@@ -100,8 +126,18 @@ export default function PlatformDashboard({
                     }
                 />
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <MetricCard label="Tenants" value={stats.tenants} hint={`${stats.active} active · ${stats.trial} trial`} icon={Building2} />
-                    <MetricCard label="Users" value={stats.users} hint={`${stats.leads} leads captured`} icon={Users} />
+                    <MetricCard
+                        label="Tenants"
+                        value={stats.tenants}
+                        hint={`${stats.active} active · ${stats.trial} trial`}
+                        icon={Building2}
+                    />
+                    <MetricCard
+                        label="Users"
+                        value={stats.users}
+                        hint={`${stats.leads} leads captured`}
+                        icon={Users}
+                    />
                     <MetricCard
                         label="MRR"
                         value={`৳${stats.mrr.toLocaleString()}`}
@@ -131,7 +167,11 @@ export default function PlatformDashboard({
                     <MetricCard
                         label="Cache store"
                         value={system.cache_store}
-                        hint={system.maintenance ? 'Maintenance mode on' : 'Application live'}
+                        hint={
+                            system.maintenance
+                                ? 'Maintenance mode on'
+                                : 'Application live'
+                        }
                         icon={Zap}
                     />
                     <MetricCard
@@ -145,7 +185,9 @@ export default function PlatformDashboard({
                     <Card>
                         <CardHeader>
                             <CardTitle>Revenue (12 months)</CardTitle>
-                            <CardDescription>Paid invoice collections by month.</CardDescription>
+                            <CardDescription>
+                                Paid invoice collections by month.
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <MiniBars data={series} valueKey="revenue" />
@@ -154,7 +196,9 @@ export default function PlatformDashboard({
                     <Card>
                         <CardHeader>
                             <CardTitle>New tenants</CardTitle>
-                            <CardDescription>Workspace signups over the last year.</CardDescription>
+                            <CardDescription>
+                                Workspace signups over the last year.
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <MiniBars data={series} valueKey="tenants" />
@@ -171,12 +215,16 @@ export default function PlatformDashboard({
                                 <div key={row.name} className="space-y-1">
                                     <div className="flex justify-between">
                                         <span>{row.name}</span>
-                                        <span className="font-medium">{row.count}</span>
+                                        <span className="font-medium">
+                                            {row.count}
+                                        </span>
                                     </div>
                                     <div className="bg-muted h-1.5 overflow-hidden rounded-full">
                                         <div
                                             className="bg-primary h-full rounded-full"
-                                            style={{ width: `${(row.count / planMax) * 100}%` }}
+                                            style={{
+                                                width: `${(row.count / planMax) * 100}%`,
+                                            }}
                                         />
                                     </div>
                                 </div>
@@ -188,10 +236,19 @@ export default function PlatformDashboard({
                             <CardTitle>Traffic sources</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2 text-sm">
-                            {sources.length === 0 && <p className="text-muted-foreground">No attribution data yet.</p>}
+                            {sources.length === 0 && (
+                                <p className="text-muted-foreground">
+                                    No attribution data yet.
+                                </p>
+                            )}
                             {sources.map((row) => (
-                                <div key={row.source} className="flex justify-between">
-                                    <span className="capitalize">{row.source}</span>
+                                <div
+                                    key={row.source}
+                                    className="flex justify-between"
+                                >
+                                    <span className="capitalize">
+                                        {row.source}
+                                    </span>
                                     <span>
                                         {row.total} · {row.converted} converted
                                     </span>
@@ -204,10 +261,22 @@ export default function PlatformDashboard({
                             <CardTitle>Health</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2 text-sm">
-                            <div className="flex justify-between"><span>New subscriptions</span><span>{stats.new_subscriptions}</span></div>
-                            <div className="flex justify-between"><span>Suspended</span><span>{stats.suspended}</span></div>
-                            <div className="flex justify-between"><span>Churned / expired</span><span>{stats.churn}</span></div>
-                            <div className="flex justify-between"><span>Trial conversion</span><span>{stats.trial_conversion}%</span></div>
+                            <div className="flex justify-between">
+                                <span>New subscriptions</span>
+                                <span>{stats.new_subscriptions}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Suspended</span>
+                                <span>{stats.suspended}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Churned / expired</span>
+                                <span>{stats.churn}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Trial conversion</span>
+                                <span>{stats.trial_conversion}%</span>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
@@ -217,14 +286,25 @@ export default function PlatformDashboard({
                             <CardTitle>Recent payments</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2 text-sm">
-                            {recentPayments.length === 0 && <p className="text-muted-foreground">No payments yet.</p>}
+                            {recentPayments.length === 0 && (
+                                <p className="text-muted-foreground">
+                                    No payments yet.
+                                </p>
+                            )}
                             {recentPayments.map((payment) => (
-                                <div key={payment.id} className="flex justify-between gap-3">
+                                <div
+                                    key={payment.id}
+                                    className="flex justify-between gap-3"
+                                >
                                     <span>
                                         {payment.tenant} · {payment.plan}
-                                        <span className="text-muted-foreground block text-xs">{payment.gateway}</span>
+                                        <span className="text-muted-foreground block text-xs">
+                                            {payment.gateway}
+                                        </span>
                                     </span>
-                                    <span>৳{payment.amount.toLocaleString()}</span>
+                                    <span>
+                                        ৳{payment.amount.toLocaleString()}
+                                    </span>
                                 </div>
                             ))}
                         </CardContent>
@@ -234,16 +314,31 @@ export default function PlatformDashboard({
                             <CardTitle>Latest invoices</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2 text-sm">
-                            {recentInvoices.length === 0 && <p className="text-muted-foreground">No invoices yet.</p>}
+                            {recentInvoices.length === 0 && (
+                                <p className="text-muted-foreground">
+                                    No invoices yet.
+                                </p>
+                            )}
                             {recentInvoices.map((invoice) => (
-                                <Link key={invoice.id} href={`/platform/invoices/${invoice.id}`} className="flex justify-between gap-3 hover:underline">
+                                <Link
+                                    key={invoice.id}
+                                    href={`/platform/invoices/${invoice.id}`}
+                                    className="flex justify-between gap-3 hover:underline"
+                                >
                                     <span>
                                         {invoice.number}
-                                        <span className="text-muted-foreground block text-xs">{invoice.tenant} · {invoice.billed_to_email}</span>
+                                        <span className="text-muted-foreground block text-xs">
+                                            {invoice.tenant} ·{' '}
+                                            {invoice.billed_to_email}
+                                        </span>
                                     </span>
                                     <span className="text-right">
                                         ৳{invoice.amount.toLocaleString()}
-                                        <StatusBadge className="mt-1" status={invoice.status_label.toLowerCase()} label={invoice.status_label} />
+                                        <StatusBadge
+                                            className="mt-1"
+                                            status={invoice.status_label.toLowerCase()}
+                                            label={invoice.status_label}
+                                        />
                                     </span>
                                 </Link>
                             ))}

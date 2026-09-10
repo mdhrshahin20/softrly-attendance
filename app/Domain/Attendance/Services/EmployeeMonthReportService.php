@@ -53,6 +53,7 @@ class EmployeeMonthReportService
             ->get();
 
         $holidayDays = $this->holidays->inRange($start, $end, $employee);
+        $joiningDate = $employee->joining_date?->toDateString();
 
         $summary = [
             'on_time' => 0,
@@ -79,7 +80,12 @@ class EmployeeMonthReportService
             $label = $holiday?->name ?? $leave?->leaveType?->name;
 
             if ($status === null) {
-                if ($leave) {
+                if ($joiningDate !== null && $key < $joiningDate) {
+                    // Not employed yet — never count these as absent.
+                    $status = AttendanceStatus::NotJoined;
+                    $code = AttendanceStatus::NotJoined->shortCode();
+                    $label = null;
+                } elseif ($leave) {
                     $status = AttendanceStatus::Leave;
                     $code = AttendanceStatus::Leave->shortCode();
                 } elseif ($holiday) {

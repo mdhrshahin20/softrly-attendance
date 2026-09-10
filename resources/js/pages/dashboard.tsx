@@ -702,7 +702,10 @@ function CheckInPanel({
     today,
     network,
     attendancePolicy,
-}: Pick<Props, 'employee' | 'today' | 'network' | 'attendancePolicy'>) {
+    canMarkAttendance,
+}: Pick<Props, 'employee' | 'today' | 'network' | 'attendancePolicy'> & {
+    canMarkAttendance: boolean;
+}) {
     const deviceId = useDeviceId();
     const geo = useGeolocation(Boolean(attendancePolicy?.requires_location));
     const checkedIn = Boolean(today?.check_in_at && !today.check_out_at);
@@ -781,7 +784,7 @@ function CheckInPanel({
                 ) : null}
 
                 <div className="flex flex-wrap gap-2.5">
-                    {!checkedIn && !completed ? (
+                    {!checkedIn && !completed && canMarkAttendance ? (
                         <Form action="/attendance/check-in" method="post" className="inline">
                             {({ processing, errors }) => (
                                 <>
@@ -806,7 +809,7 @@ function CheckInPanel({
                         </Form>
                     ) : null}
 
-                    {checkedIn ? (
+                    {checkedIn && canMarkAttendance ? (
                         <Form action="/attendance/check-out" method="post" className="inline">
                             {({ processing, errors }) => (
                                 <>
@@ -833,6 +836,12 @@ function CheckInPanel({
                                 </>
                             )}
                         </Form>
+                    ) : null}
+
+                    {!canMarkAttendance ? (
+                        <p className="text-muted-foreground self-center text-sm">
+                            You do not have permission to mark your own attendance.
+                        </p>
                     ) : null}
 
                     <Button variant="outline" size="sm" asChild>
@@ -902,7 +911,33 @@ export default function Dashboard({
 }: Props) {
     const { auth, can } = usePage().props;
     const isAdmin = teamToday !== null;
+    const canMarkAttendance = Boolean((can as Record<string, boolean> | undefined)?.markAttendance);
     const firstName = employee?.full_name?.split(' ')[0] ?? auth.user.name.split(' ')[0];
+
+    // Owners and HR admins are employees too, so their personal check-in panel
+    // has to render alongside the team analytics.
+    const personalAttendance = employee ? (
+        <div className="grid gap-4 xl:grid-cols-3">
+            <div className="xl:col-span-2">
+                <CheckInPanel
+                    employee={employee}
+                    today={today}
+                    network={network}
+                    attendancePolicy={attendancePolicy}
+                    canMarkAttendance={canMarkAttendance}
+                />
+            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>This month</CardTitle>
+                    <CardDescription>Your attendance breakdown</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                    <MonthSegments month={month} />
+                </CardContent>
+            </Card>
+        </div>
+    ) : null;
 
     return (
         <>
@@ -944,6 +979,8 @@ export default function Dashboard({
                         ) : (
                             <SkeletonKpiGrid />
                         )}
+
+                        {personalAttendance}
 
                         <div className="grid gap-4 xl:grid-cols-3">
                             <AnalyticsCard analytics={analytics} />
@@ -990,25 +1027,7 @@ export default function Dashboard({
                     </>
                 ) : (
                     <>
-                        <div className="grid gap-4 xl:grid-cols-3">
-                            <div className="xl:col-span-2">
-                                <CheckInPanel
-                                    employee={employee}
-                                    today={today}
-                                    network={network}
-                                    attendancePolicy={attendancePolicy}
-                                />
-                            </div>
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle>This month</CardTitle>
-                                    <CardDescription>Your attendance breakdown</CardDescription>
-                                </CardHeader>
-                                <CardContent className="pt-0">
-                                    <MonthSegments month={month} />
-                                </CardContent>
-                            </Card>
-                        </div>
+                        {personalAttendance}
 
                         <div className="grid gap-4 lg:grid-cols-3">
                             <Card>

@@ -146,8 +146,11 @@ class AttendanceService
 
         $lateMinutes = $checkIn ? $this->lateMinutes($checkIn, $shift) : 0;
         $workMinutes = $checkIn && $checkOut ? max(0, (int) $checkIn->diffInMinutes($checkOut)) : 0;
-        $status = AttendanceStatus::tryFrom((string) ($input['status'] ?? ''))
-            ?? ($lateMinutes > 0 ? AttendanceStatus::Late : AttendanceStatus::Manual);
+        $requested = AttendanceStatus::tryFrom((string) ($input['status'] ?? ''));
+        $fallback = $lateMinutes > 0 ? AttendanceStatus::Late : AttendanceStatus::Manual;
+        $status = $requested !== null && in_array($requested, AttendanceStatus::recordable(), true)
+            ? $requested
+            : $fallback;
 
         $attendance = Attendance::query()->updateOrCreate(
             [
