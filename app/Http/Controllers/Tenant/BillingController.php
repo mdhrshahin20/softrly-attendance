@@ -32,7 +32,7 @@ class BillingController extends Controller
     {
         abort_unless($request->user()?->can('settings.manage'), 403);
 
-        return Inertia::render('billing/index', [
+        return Inertia::render('settings/billing', [
             'subscription' => $this->subscriptions->snapshot(),
             'plans' => $this->plans->publicPlans()->map->toPublicArray()->values(),
             'gateways' => $this->gateways->available(),

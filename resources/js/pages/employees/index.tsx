@@ -88,7 +88,7 @@ export default function EmployeesIndex({
                             ) : null}
                             {can?.createEmployees && atLimit && can?.manageBilling ? (
                                 <Button asChild>
-                                    <Link href="/billing">Upgrade plan</Link>
+                                    <Link href="/settings/billing">Upgrade plan</Link>
                                 </Button>
                             ) : null}
                             {canImport ? (

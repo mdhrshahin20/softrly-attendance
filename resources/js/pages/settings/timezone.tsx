@@ -221,5 +221,8 @@ export default function TimezoneSettings({
 }
 
 TimezoneSettings.layout = {
-    breadcrumbs: [{ title: 'Time zone', href: '/settings/timezone' }],
+    breadcrumbs: [
+        { title: 'Settings', href: '/settings' },
+        { title: 'Time zone', href: '/settings/timezone' },
+    ],
 };

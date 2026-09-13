@@ -82,11 +82,17 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.session'])->group(funct
     Route::delete('face', [FaceEnrolmentController::class, 'destroy'])->name('face.destroy');
     Route::get('face/photo', [FaceEnrolmentController::class, 'photo'])->name('face.photo');
 
-    Route::get('billing', [BillingController::class, 'index'])->name('billing.index');
+    Route::get('settings/billing', [BillingController::class, 'index'])->name('settings.billing');
     Route::post('billing/subscribe', [BillingController::class, 'subscribe'])->name('billing.subscribe');
     Route::post('billing/cancel', [BillingController::class, 'cancel'])->name('billing.cancel');
     Route::get('billing/invoices/{invoice}/download', [BillingController::class, 'downloadInvoice'])->name('billing.invoices.download');
     Route::get('billing/invoices/{invoice}/print', [BillingController::class, 'printInvoice'])->name('billing.invoices.print');
+
+    // Settings pages now live under /settings; keep the old links working.
+    Route::redirect('working-days', '/settings/working-days');
+    Route::redirect('roles', '/settings/roles');
+    Route::redirect('billing', '/settings/billing');
+    Route::redirect('audit-logs', '/settings/audit-logs');
 
     Route::middleware('subscription.active')->group(function () {
         Route::post('attendance/check-in', [AttendanceController::class, 'checkIn'])
@@ -142,8 +148,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.session'])->group(funct
         Route::post('holidays', [HolidayController::class, 'store'])->name('holidays.store');
         Route::delete('holidays/{holiday}', [HolidayController::class, 'destroy'])->name('holidays.destroy');
 
-        Route::get('working-days', [WorkingDayController::class, 'index'])->name('working-days.index');
-        Route::put('working-days', [WorkingDayController::class, 'update'])->name('working-days.update');
+        Route::get('settings/working-days', [WorkingDayController::class, 'index'])->name('settings.working-days');
+        Route::put('settings/working-days', [WorkingDayController::class, 'update'])->name('settings.working-days.update');
 
         Route::get('settings/attendance', [AttendanceSettingsController::class, 'index'])->name('settings.attendance');
         Route::put('settings/attendance', [AttendanceSettingsController::class, 'update'])->name('settings.attendance.update');
@@ -156,12 +162,12 @@ Route::middleware(['auth', 'verified', 'tenant', 'tenant.session'])->group(funct
         Route::post('devices/{device}/untrust', [DeviceController::class, 'untrust'])->name('devices.untrust');
         Route::delete('devices/{device}', [DeviceController::class, 'destroy'])->name('devices.destroy');
 
-        Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
-        Route::post('roles', [RoleController::class, 'store'])->name('roles.store');
-        Route::put('roles/{role}', [RoleController::class, 'update'])->name('roles.update');
-        Route::delete('roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
+        Route::get('settings/roles', [RoleController::class, 'index'])->name('settings.roles');
+        Route::post('settings/roles', [RoleController::class, 'store'])->name('settings.roles.store');
+        Route::put('settings/roles/{role}', [RoleController::class, 'update'])->name('settings.roles.update');
+        Route::delete('settings/roles/{role}', [RoleController::class, 'destroy'])->name('settings.roles.destroy');
 
-        Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+        Route::get('settings/audit-logs', [AuditLogController::class, 'index'])->name('settings.audit-logs');
 
         Route::get('settings/domains', [DomainController::class, 'index'])->name('settings.domains');
         Route::post('settings/domains', [DomainController::class, 'store'])->name('settings.domains.store');

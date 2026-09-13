@@ -292,5 +292,8 @@ export default function AttendanceSettings({
 }
 
 AttendanceSettings.layout = {
-    breadcrumbs: [{ title: 'Attendance settings', href: '/settings/attendance' }],
+    breadcrumbs: [
+        { title: 'Settings', href: '/settings' },
+        { title: 'Attendance settings', href: '/settings/attendance' },
+    ],
 };

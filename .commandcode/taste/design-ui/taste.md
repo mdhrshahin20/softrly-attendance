@@ -13,6 +13,7 @@
 - The logged-in user's avatar and name should appear consistently (topbar, dropdowns) so identity is obvious at a glance. Confidence: 0.8
 - Prefers list → detail/configure layouts for management modules (tenants, plans, payment gateways), with each item configured individually (e.g., per-gateway configure page with its own live/sandbox mode) rather than a single dropdown or one page crammed with everything. Confidence: 0.85
 - Avoids duplicate navigation entries that lead to the same place (e.g., don't show Profile and Settings separately when they are the same page). Confidence: 0.6
+- Wants all settings consolidated into one Settings hub/menu with a persistent sub-navigation and grouped sections (Account / Workspace / Billing), rather than settings scattered across separate surfaces; any settings entry that navigates the user out of the settings context so they "can't get back" is treated as a bug. Confidence: 0.75
 - Settings/config fields should be shown conditionally — when a mode or feature is inactive (e.g., location-based attendance), its config UI should not appear. Confidence: 0.6
 - Employee-facing screens must not expose technical IP/network details; show friendly, plain-language status messages instead. Confidence: 0.85
 - Every page needs proper loading states (skeletons), meaningful empty states with a next action, and friendly error states with retry — never blank tables, full-screen spinners, or raw exceptions. Confidence: 0.9

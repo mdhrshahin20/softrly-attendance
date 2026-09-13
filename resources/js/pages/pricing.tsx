@@ -123,7 +123,7 @@ export default function Pricing({ plans }: { plans: Plan[] }) {
                                     <Link
                                         href={
                                             auth.user
-                                                ? '/billing'
+                                                ? '/settings/billing'
                                                 : `/register?utm_source=pricing&utm_campaign=${plan.slug}`
                                         }
                                     >

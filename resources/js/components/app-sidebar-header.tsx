@@ -88,14 +88,14 @@ export function AppSidebarHeader({
                                 </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                                <Link href="/settings/security">
+                                <Link href="/settings">
                                     <Settings className="mr-2 size-4" />
                                     Settings
                                 </Link>
                             </DropdownMenuItem>
                             {showBilling ? (
                                 <DropdownMenuItem asChild>
-                                    <Link href="/billing">
+                                    <Link href="/settings/billing">
                                         <CreditCard className="mr-2 size-4" />
                                         Billing
                                     </Link>

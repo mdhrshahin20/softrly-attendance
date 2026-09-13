@@ -30,7 +30,7 @@ class RoleController extends Controller
 
         $tenant = Tenant::current();
 
-        return Inertia::render('roles/index', [
+        return Inertia::render('settings/roles', [
             'roles' => Role::query()
                 ->with('permissions')
                 ->where('tenant_id', $tenant?->id)

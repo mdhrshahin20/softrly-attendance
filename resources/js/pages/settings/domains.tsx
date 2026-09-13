@@ -17,9 +17,9 @@ export default function DomainsIndex({ domains }: { domains: Paginated<Domain> }
     return (
         <>
             <Head title="Custom domains" />
-            <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 md:p-6 lg:p-8">
+            <div className="flex flex-col gap-6">
                 <div>
-                    <h1 className="text-2xl font-semibold">Custom domains</h1>
+                    <h2 className="text-lg font-semibold">Custom domains</h2>
                     <p className="text-muted-foreground text-sm">
                         Point a hostname at this app. Active custom hosts are resolved to this tenant automatically.
                     </p>
@@ -59,5 +59,8 @@ export default function DomainsIndex({ domains }: { domains: Paginated<Domain> }
 }
 
 DomainsIndex.layout = {
-    breadcrumbs: [{ title: 'Custom domains', href: '/settings/domains' }],
+    breadcrumbs: [
+        { title: 'Settings', href: '/settings' },
+        { title: 'Custom domains', href: '/settings/domains' },
+    ],
 };

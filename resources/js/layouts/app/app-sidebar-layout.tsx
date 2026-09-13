@@ -21,7 +21,7 @@ export default function AppSidebarLayout({
                     <div className="mx-4 mt-4 rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning-foreground">
                         Your trial or subscription is not active. You can still view data, but check-in, leave, and other changes are paused.{' '}
                         {can?.manageBilling ? (
-                            <Link href="/billing" className="font-medium underline">
+                            <Link href="/settings/billing" className="font-medium underline">
                                 Open billing
                             </Link>
                         ) : (

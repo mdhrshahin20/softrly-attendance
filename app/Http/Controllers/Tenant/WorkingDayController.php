@@ -16,7 +16,7 @@ class WorkingDayController extends Controller
     {
         abort_unless(request()->user()?->can('settings.manage'), 403);
 
-        return Inertia::render('working-days/index', [
+        return Inertia::render('settings/working-days', [
             'days' => $workingDays->week(),
         ]);
     }

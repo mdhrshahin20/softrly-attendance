@@ -1,6 +1,4 @@
 import { Form, Head } from '@inertiajs/react';
-import { PageHeader } from '@/components/page-header';
-import { PageShell } from '@/components/page-shell';
 import { Pagination, type Paginated } from '@/components/pagination';
 import { StatusBadge } from '@/components/status-badge';
 import { Badge } from '@/components/ui/badge';
@@ -79,11 +77,13 @@ export default function BillingIndex({
     return (
         <>
             <Head title="Billing" />
-            <PageShell>
-                <PageHeader
-                    title="Billing"
-                    description="Plan, usage, and invoices for this workspace."
-                />
+            <div className="space-y-6">
+                <div>
+                    <h2 className="text-lg font-semibold">Billing</h2>
+                    <p className="text-muted-foreground mt-1 text-sm">
+                        Plan, usage, and invoices for this workspace.
+                    </p>
+                </div>
                 <div className="grid gap-4 lg:grid-cols-3">
                     <Card>
                         <CardHeader>
@@ -260,11 +260,14 @@ export default function BillingIndex({
                         <Button type="submit" variant="outline">Cancel subscription</Button>
                     </Form>
                 )}
-            </PageShell>
+            </div>
         </>
     );
 }
 
 BillingIndex.layout = {
-    breadcrumbs: [{ title: 'Billing', href: '/billing' }],
+    breadcrumbs: [
+        { title: 'Settings', href: '/settings' },
+        { title: 'Billing', href: '/settings/billing' },
+    ],
 };

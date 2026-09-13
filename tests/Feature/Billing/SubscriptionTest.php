@@ -129,9 +129,9 @@ test('expired subscriptions block check-in but still allow billing', function ()
         ->assertForbidden();
 
     actingAsOwner($workspace)
-        ->get('/billing')
+        ->get('/settings/billing')
         ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('billing/index'));
+        ->assertInertia(fn ($page) => $page->component('settings/billing'));
 });
 
 test('platform admin can view billing dashboard and assign a plan', function () {

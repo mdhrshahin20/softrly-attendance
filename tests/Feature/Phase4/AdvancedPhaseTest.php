@@ -121,17 +121,17 @@ test('custom roles are gated and can be created on professional', function () {
     $workspace = createWorkspace(['owner_email' => 'roles@example.com']);
 
     actingAsOwner($workspace)
-        ->get('/roles')
+        ->get('/settings/roles')
         ->assertForbidden();
 
     grantPlan($workspace, 'professional');
 
     actingAsOwner($workspace)
-        ->get('/roles')
+        ->get('/settings/roles')
         ->assertOk();
 
     actingAsOwner($workspace)
-        ->post('/roles', [
+        ->post('/settings/roles', [
             'name' => 'Payroll Admin',
             'permissions' => ['employee.view', 'attendance.view'],
         ])
@@ -144,7 +144,7 @@ test('audit log records login and is gated by plan', function () {
     $workspace = createWorkspace(['owner_email' => 'audit@example.com']);
 
     actingAsOwner($workspace)
-        ->get('/audit-logs')
+        ->get('/settings/audit-logs')
         ->assertForbidden();
 
     $this->post(route('logout'));
@@ -159,7 +159,7 @@ test('audit log records login and is gated by plan', function () {
     grantPlan($workspace, 'professional');
 
     actingAsOwner($workspace)
-        ->get('/audit-logs')
+        ->get('/settings/audit-logs')
         ->assertOk();
 });
 

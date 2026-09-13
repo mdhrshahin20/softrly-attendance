@@ -21,9 +21,9 @@ export default function ApiTokensIndex({
     return (
         <>
             <Head title="API tokens" />
-            <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 md:p-6 lg:p-8">
+            <div className="flex flex-col gap-6">
                 <div>
-                    <h1 className="text-2xl font-semibold">API tokens</h1>
+                    <h2 className="text-lg font-semibold">API tokens</h2>
                     <p className="text-muted-foreground text-sm">
                         Use <code>Authorization: Bearer TOKEN</code> against <code>/api/v1/</code> for attendance and leave.
                     </p>
@@ -64,5 +64,8 @@ export default function ApiTokensIndex({
 }
 
 ApiTokensIndex.layout = {
-    breadcrumbs: [{ title: 'API tokens', href: '/settings/api-tokens' }],
+    breadcrumbs: [
+        { title: 'Settings', href: '/settings' },
+        { title: 'API tokens', href: '/settings/api-tokens' },
+    ],
 };

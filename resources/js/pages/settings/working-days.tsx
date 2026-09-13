@@ -1,7 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
 import { CalendarCheck } from 'lucide-react';
-import { PageHeader } from '@/components/page-header';
-import { PageShell } from '@/components/page-shell';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -16,13 +14,13 @@ export default function WorkingDaysIndex({ days }: { days: Day[] }) {
     return (
         <>
             <Head title="Working days" />
-            <PageShell>
-                <PageHeader
-                    title="Working days"
-                    description="Leave and attendance calendars skip days that are not working days."
-                />
+            <div>
+                <h2 className="text-lg font-semibold">Working days</h2>
+                <p className="text-muted-foreground mt-1 text-sm">
+                    Leave and attendance calendars skip days that are not working days.
+                </p>
 
-                <Card className="max-w-md">
+                <Card className="mt-5 max-w-md">
                     <CardHeader>
                         <CardTitle>Weekly schedule</CardTitle>
                         <CardDescription>
@@ -30,7 +28,7 @@ export default function WorkingDaysIndex({ days }: { days: Day[] }) {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Form action="/working-days" method="put" className="space-y-4">
+                        <Form action="/settings/working-days" method="put" className="space-y-4">
                             {({ processing }) => (
                                 <>
                                     <div className="space-y-3">
@@ -80,14 +78,14 @@ export default function WorkingDaysIndex({ days }: { days: Day[] }) {
                         </Form>
                     </CardContent>
                 </Card>
-            </PageShell>
+            </div>
         </>
     );
 }
 
 WorkingDaysIndex.layout = {
     breadcrumbs: [
-        { title: 'Settings', href: '/settings/attendance' },
-        { title: 'Working days', href: '/working-days' },
+        { title: 'Settings', href: '/settings' },
+        { title: 'Working days', href: '/settings/working-days' },
     ],
 };

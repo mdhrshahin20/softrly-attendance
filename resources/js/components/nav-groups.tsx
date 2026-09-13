@@ -11,14 +11,11 @@ import {
     FileSpreadsheet,
     FileText,
     Fingerprint,
-    Globe,
     HardDrive,
     Inbox,
-    KeyRound,
     Layers3,
     LayoutGrid,
     Mail,
-    MapPin,
     Megaphone,
     Network,
     Palmtree,
@@ -26,7 +23,7 @@ import {
     Receipt,
     ScanFace,
     ScrollText,
-    Shield,
+    Settings,
     Users,
     Wrench,
 } from 'lucide-react';
@@ -196,41 +193,11 @@ export function buildNavGroups({
               ])
             : null,
         !isPlatform
-            ? navGroup('Settings', [
-                  can?.manageSettings && {
-                      title: 'Attendance mode',
-                      href: '/settings/attendance',
-                      icon: MapPin,
-                  },
-                  can?.manageSettings && {
-                      title: 'Working days',
-                      href: '/working-days',
-                      icon: CalendarDays,
-                  },
-                  can?.manageRoles && {
-                      title: 'Roles',
-                      href: '/roles',
-                      icon: Shield,
-                  },
-                  can?.manageBilling && {
-                      title: 'Billing',
-                      href: '/billing',
-                      icon: CreditCard,
-                  },
-                  can?.customDomain && {
-                      title: 'Custom domain',
-                      href: '/settings/domains',
-                      icon: Globe,
-                  },
-                  can?.apiAccess && {
-                      title: 'API tokens',
-                      href: '/settings/api-tokens',
-                      icon: KeyRound,
-                  },
-                  can?.viewAudit && {
-                      title: 'Audit log',
-                      href: '/audit-logs',
-                      icon: ScrollText,
+            ? navGroup('Workspace', [
+                  {
+                      title: 'Settings',
+                      href: '/settings',
+                      icon: Settings,
                   },
               ])
             : null,

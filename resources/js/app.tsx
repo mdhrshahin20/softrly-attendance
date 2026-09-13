@@ -6,7 +6,6 @@ import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import MarketingLayout from '@/layouts/marketing-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import WorkspaceSettingsLayout from '@/layouts/settings/workspace-layout';
 import { configureEcho } from '@laravel/echo-react';
 
 configureEcho({
@@ -14,13 +13,6 @@ configureEcho({
 });
 
 const appName = import.meta.env.VITE_APP_NAME || 'Attendrly';
-
-const workspaceSettingsPages = new Set([
-    'settings/attendance',
-    'settings/timezone',
-    'settings/domains',
-    'settings/api-tokens',
-]);
 
 void createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
@@ -32,8 +24,6 @@ void createInertiaApp({
                 return MarketingLayout;
             case name.startsWith('auth/'):
                 return AuthLayout;
-            case workspaceSettingsPages.has(name):
-                return [AppLayout, WorkspaceSettingsLayout];
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
             default:

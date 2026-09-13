@@ -28,9 +28,9 @@ export default function AuditLogsIndex({
     return (
         <>
             <Head title="Audit log" />
-            <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 md:p-6 lg:p-8">
+            <div className="flex flex-col gap-6">
                 <div>
-                    <h1 className="text-2xl font-semibold">Audit log</h1>
+                    <h2 className="text-lg font-semibold">Audit log</h2>
                     <p className="text-muted-foreground text-sm">Sensitive actions are recorded with actor, IP, and payload.</p>
                 </div>
                 <form
@@ -38,7 +38,7 @@ export default function AuditLogsIndex({
                     onSubmit={(event) => {
                         event.preventDefault();
                         const data = new FormData(event.currentTarget);
-                        router.get('/audit-logs', { action: String(data.get('action') ?? '') });
+                        router.get('/settings/audit-logs', { action: String(data.get('action') ?? '') });
                     }}
                 >
                     <Input name="action" defaultValue={filters.action ?? ''} placeholder="Filter action" />
@@ -90,5 +90,8 @@ export default function AuditLogsIndex({
 }
 
 AuditLogsIndex.layout = {
-    breadcrumbs: [{ title: 'Audit log', href: '/audit-logs' }],
+    breadcrumbs: [
+        { title: 'Settings', href: '/settings' },
+        { title: 'Audit log', href: '/settings/audit-logs' },
+    ],
 };

@@ -26,7 +26,7 @@ class AuditLogController extends Controller
             ->paginate(40)
             ->withQueryString();
 
-        return Inertia::render('audit-logs/index', [
+        return Inertia::render('settings/audit-logs', [
             'logs' => $logs->through(fn (ActivityLog $log): array => [
                 'id' => $log->id,
                 'action' => $log->action,

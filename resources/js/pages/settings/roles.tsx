@@ -18,15 +18,15 @@ export default function RolesIndex({ roles, permissions }: { roles: Paginated<Ro
     return (
         <>
             <Head title="Roles" />
-            <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-4 md:p-6 lg:p-8">
+            <div className="flex flex-col gap-6">
                 <div>
-                    <h1 className="text-2xl font-semibold">Custom roles</h1>
+                    <h2 className="text-lg font-semibold">Custom roles</h2>
                     <p className="text-muted-foreground text-sm">
                         Create extra roles and choose their permissions. Default roles cannot be deleted.
                     </p>
                 </div>
 
-                <Form action="/roles" method="post" className="max-w-xl space-y-3 rounded-xl border p-4">
+                <Form action="/settings/roles" method="post" className="max-w-xl space-y-3 rounded-xl border p-4">
                     <Input name="name" placeholder="payroll-admin" required />
                     <div className="grid gap-2 sm:grid-cols-2">
                         {permissions.map((permission) => (
@@ -49,7 +49,7 @@ export default function RolesIndex({ roles, permissions }: { roles: Paginated<Ro
                                 </div>
                                 {!role.is_system && (
                                     <DeleteConfirm
-                                        action={`/roles/${role.id}`}
+                                        action={`/settings/roles/${role.id}`}
                                         title={`Delete ${role.name}?`}
                                         description={`This cannot be undone. Users with this role will lose these permissions.`}
                                     />
@@ -87,5 +87,8 @@ export default function RolesIndex({ roles, permissions }: { roles: Paginated<Ro
 }
 
 RolesIndex.layout = {
-    breadcrumbs: [{ title: 'Roles', href: '/roles' }],
+    breadcrumbs: [
+        { title: 'Settings', href: '/settings' },
+        { title: 'Roles', href: '/settings/roles' },
+    ],
 };
